@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="js/axios-config.js"></script>
+  <script src="js/authService.js"></script>
+  <script src="js/login.js" defer></script>
+
+  <style>
+    body { font-family: "Times New Roman", Times, serif; }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center overflow-hidden">
+
+<video autoplay muted loop playsinline
+        class="absolute inset-0 w-full h-full object-cover">
+  <source src="static/video/bg.mp4" type="video/mp4">
+</video>
+
+<div class="absolute inset-0 bg-slate-900/50"></div>
+
+<div class="relative z-10 bg-slate-900/60 backdrop-blur-xl
+            rounded-2xl shadow-xl p-10 w-full max-w-md
+            border border-white/20">
+
+  <div class="flex justify-center mb-6">
+    <img src="static/images/logo-penguin-white.png" class="w-20 h-20">
+  </div>
+
+  <h1 class="text-2xl text-white text-center mb-6">Đăng nhập</h1>
+
+  <form onsubmit="event.preventDefault(); login();" class="space-y-5">
+  
+  <div class="relative">
+    <span class="absolute inset-y-0 left-3 flex items-center">
+      <img src="static/images/user.png" class="w-5 opacity-70">
+    </span>
+    <input id="username" placeholder="Username" required
+          class="w-full pl-12 py-3 rounded bg-white/90">
+  </div>
+
+  <div class="relative">
+    <span class="absolute inset-y-0 left-3 flex items-center">
+      <img src="static/images/padlock.png" class="w-5 opacity-70">
+    </span>
+    <input id="password" type="password" placeholder="Password" required
+          class="w-full pl-12 py-3 rounded bg-white/90">
+  </div>
+
+  <p id="errorMsg" class="text-red-400 text-sm hidden text-center"></p>
+
+  <button id="loginBtn" type="button" onclick="login()" class="w-full py-3 text-white rounded bg-gradient-to-r
+          from-pink-500 via-purple-500 to-indigo-500">
+    Đăng nhập
+  </button>
+</form>
+
+  <div class="mt-4 text-center text-sm text-gray-300">
+    <a href="forgot-password.html" class="underline">Quên mật khẩu?</a><br>
+    <a href="register.html" class="underline">Tạo tài khoản</a>
+  </div>
+
+</div>
+</body>
+</html>
+

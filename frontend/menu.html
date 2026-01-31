@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Light Glass | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <style>
+        /* Bổ sung để giống ảnh nhất có thể */
+        .nav-item { font-family: sans-serif; }
+        .active-link { background: rgba(147, 51, 234, 0.1); color: #9333ea; font-weight: 700; border-radius: 9999px; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden text-slate-800 font-sans bg-slate-50">
+    <div class="fixed inset-0 -z-20">
+        <img src="static/images/bg_home.jpg" class="w-full h-full object-cover">
+    </div>
+    <div class="fixed inset-0 bg-white/70 backdrop-blur-[5px] -z-10"></div>
+
+    <div class="flex max-w-[1200px] mx-auto h-screen relative z-10">
+        
+        <aside class="w-[250px] flex flex-col p-4 border-r border-slate-200/50 h-full bg-white/5">
+            <div class="mb-6 px-4">
+                <img src="static/images/logo-penguin-white.png" class="w-10 h-10 shadow-glow">
+            </div>
+
+            <nav class="space-y-1 flex-1" id="mainNav">
+    <button onclick="loadPage('home')" class="nav-item group active" data-page="home">
+        <img src="static/images/home.png" class="w-6 h-6">
+        <span class="text-lg">Home</span>
+    </button>
+    
+    <button onclick="loadPage('explore')" class="nav-item group" data-page="explore">
+        <img src="static/images/search.png" class="w-6 h-6">
+        <span class="text-lg">Explore</span>
+    </button>
+    
+    <button onclick="loadPage('notifications')" class="nav-item group" data-page="notifications">
+        <img src="static/images/bell.png" class="w-6 h-6">
+        <span class="text-lg">Notifications</span>
+    </button>
+    
+    <button onclick="loadPage('messages')" class="nav-item group" data-page="messages">
+        <img src="static/images/speech-bubble.png" class="w-6 h-6">
+        <span class="text-lg">Messages</span>
+    </button>
+    
+    <button onclick="loadPage('profile')" class="nav-item group" data-page="profile">
+        <img src="static/images/profile.png" class="w-6 h-6">
+        <span class="text-lg">Profile</span>
+    </button>
+</nav>
+
+<div class="relative mt-auto">
+    <button id="moreMenuBtn" class="nav-item w-fit">
+        <img src="static/images/more.png" class="w-6 h-6">
+        <span class="text-lg">More</span>
+    </button>
+    
+    <div id="moreMenuContent" class="hidden absolute bottom-full left-0 w-64 mb-2 bg-white/95 backdrop-blur-2xl rounded-2xl border border-purple-100 shadow-2xl z-50 overflow-hidden">
+        <a href="register.html" class="dropdown-item block w-full text-left p-3 hover:bg-purple-50 transition text-slate-700 font-bold">
+            Create a new account
+        </a>
+        
+        <div class="border-t border-slate-100"></div>
+        
+        <a href="login.html" class="dropdown-item block w-full text-left p-3 hover:bg-purple-50 transition text-slate-700">
+            Switch account
+        </a>
+        
+        <button class="dropdown-item w-full text-left p-3 hover:bg-purple-50 transition text-slate-700">
+            ⚙️ Settings
+        </button>
+        
+        <div class="border-t border-slate-100"></div>
+
+        <button onclick="AuthService.logout()" class="dropdown-item w-full text-left p-3 text-red-500 hover:bg-red-50 transition font-bold">
+            🚪 Log out
+        </button>
+    </div>
+</div>
+        </aside>
+
+        <main id="main-content" class="flex-1 flex flex-col bg-white/30 backdrop-blur-md border-r border-slate-200/50 overflow-y-auto no-scrollbar">
+            </main>
+
+        <aside class="w-[300px] hidden xl:block p-4 bg-white/5">
+            <div class="bg-white/40 backdrop-blur-xl p-4 rounded-2xl border border-white/60">
+                <h3 class="font-bold text-lg text-purple-700 mb-3">Trending</h3>
+                <div class="text-sm text-slate-500">#Glassmorphism</div>
+            </div>
+        </aside>
+    </div>
+</body>
+</html>
+<script>
+        async function loadPage(pageName) {
+            const contentArea = document.getElementById('main-content');
+            try {
+                const response = await fetch(`${pageName}.html`);
+                const html = await response.text();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const targetMain = doc.querySelector('main');
+                
+                // Cập nhật nội dung
+                contentArea.innerHTML = targetMain ? targetMain.innerHTML : html;
+
+                // Cập nhật trạng thái Active trên Sidebar
+                document.querySelectorAll('.nav-item').forEach(btn => {
+                    btn.classList.remove('active-link');
+                    if(btn.getAttribute('data-page') === pageName) btn.classList.add('active-link');
+                });
+
+                // Nếu là trang Profile, kích hoạt script lấy Avatar từ API
+                if (pageName === 'profile') {
+                    if (window.profileManager) {
+                        window.profileManager.init();
+                    } else {
+                        const script = document.createElement('script');
+                        script.src = 'js/profile.js';
+                        document.body.appendChild(script);
+                    }
+                }
+            } catch (error) {
+                contentArea.innerHTML = "<div class='p-10'>Error loading page.</div>";
+            }
+        }
+
+        // Mặc định load trang Home
+        window.onload = () => loadPage('home');
+
+        // Logic Toggle Menu More
+        const btn = document.getElementById('moreMenuBtn');
+        const content = document.getElementById('moreMenuContent');
+        btn.onclick = (e) => { e.stopPropagation(); content.classList.toggle('hidden'); };
+        document.onclick = () => content.classList.add('hidden');
+    </script>

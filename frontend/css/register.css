@@ -1,0 +1,26 @@
+/* Xóa bỏ đoạn .input-box.email cũ và thay bằng: */
+
+.input-box {
+    position: relative;
+    width: 100%;
+}
+
+/* Đảm bảo chữ trong input bắt đầu sau icon */
+#email {
+    padding-left: 3rem !important; /* Tương đương pl-12 để icon không đè chữ */
+}
+
+/* Nếu bạn muốn hiệu ứng khi focus (như đoạn code bạn viết dở) */
+.input-box input:focus {
+    background-color: #ffffff; /* Sáng hơn khi gõ */
+    transition: all 0.3s ease;
+}
+
+/* Sửa lỗi chữ 'f' và transition/transform */
+.input-box input:focus ~ .email-label, 
+.input-box input:valid ~ .email-label {
+    top: -10px;
+    font-size: 12px;
+    color: #fff;
+    transform: translateY(0);
+}

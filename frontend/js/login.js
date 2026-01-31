@@ -16,7 +16,7 @@ function login() {
             const { accessToken, tokenType } = response.data;
             AuthService.saveToken(accessToken, tokenType);
             showSuccess(errorMsg, "Đăng nhập thành công!");
-            setTimeout(() => window.location.href = "home.html", 1000);
+            setTimeout(() => window.location.href = "menu.html", 1000);
         })
         .catch(error => {
             showError(errorMsg, "Tài khoản hoặc mật khẩu không chính xác");

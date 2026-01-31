@@ -1,0 +1,41 @@
+<main>
+    <div class="p-4 bg-white/40 backdrop-blur-xl border-b border-slate-200 flex-shrink-0">
+        <h2 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Home</h2>
+    </div>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar">
+        <div class="m-4 p-4 bg-white/60 backdrop-blur-md rounded-2xl border border-purple-100 shadow-sm">
+            <div class="flex gap-4">
+                <img src="static/images/user.png" class="w-12 h-12 rounded-full border-2 border-purple-200 p-0.5">
+                <div class="flex-1">
+                    <textarea class="w-full bg-transparent text-slate-800 placeholder-slate-400 border-none focus:ring-0 resize-none text-lg" 
+                        placeholder="What's happening?" rows="2"></textarea>
+                    <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
+                        <div class="flex gap-4 text-xl">
+                            <button class="hover:scale-120 transition">🖼️</button> 
+                            <button class="hover:scale-120 transition">😊</button>
+                        </div>
+                        <button class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-7 py-2 rounded-full font-bold shadow-lg shadow-purple-200 hover:brightness-110 active:scale-95 transition">
+                            Post
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 space-y-4">
+            <article class="p-4 bg-white/40 rounded-2xl border border-white hover:border-purple-200 transition-all cursor-pointer">
+                <div class="flex gap-3">
+                    <img src="static/images/user.png" class="w-10 h-10 rounded-full bg-slate-100">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold">Admin</span>
+                            <span class="text-slate-500 text-xs">@admin · 1h</span>
+                        </div>
+                        <p class="mt-2 text-slate-700 text-sm">This is the English version of your new SPA design. Clean and fast! 🚀</p>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</main>

@@ -13,8 +13,8 @@ function login() {
 
     AuthService.login(username, password)
         .then(response => {
-            const { accessToken, tokenType } = response.data;
-            AuthService.saveToken(accessToken, tokenType);
+            const { token, tokenType } = response.data.data;
+            AuthService.saveToken(token, tokenType);
             showSuccess(errorMsg, "Đăng nhập thành công!");
             setTimeout(() => window.location.href = "menu.html", 1000);
         })

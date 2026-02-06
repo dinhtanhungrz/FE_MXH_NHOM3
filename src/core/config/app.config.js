@@ -13,8 +13,10 @@ export const APP_CONFIG = {
     },
 
     USER: {
+      BASE: "/users",
       ME: "/users/me",
       PROFILE: "/users/profile",
+      AVATAR: "/users/me/avatar",
     },
   },
 

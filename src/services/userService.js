@@ -50,8 +50,17 @@ export const uploadAvatar = async (file) => {
   const formData = new FormData();
   formData.append("avatar", file);
 
-  const response = await apiClient.post("/users/me/avatar", formData);
+  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.USER.AVATAR, formData);
   return response;
+};
+
+/**
+ * Get all users (Admin only)
+ * @returns {Promise<Array>} Array of all users
+ */
+export const getAllUsers = async () => {
+  const response = await apiClient.get(APP_CONFIG.API_ENDPOINTS.USER.BASE);
+  return response.data;
 };
 
 export default {
@@ -59,4 +68,5 @@ export default {
   getUserProfile,
   updateProfile,
   uploadAvatar,
+  getAllUsers,
 };

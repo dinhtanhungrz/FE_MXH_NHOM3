@@ -98,10 +98,26 @@ export const getUser = () => {
   return authState.getUser();
 };
 
+/**
+ *  Get All Users (Admin only)
+ *
+ */
+export const getAllUsers = async () => {
+  try {
+    const users = await userService.getAllUsers();
+    return users;
+  } catch (error) {
+    console.error("Get all users error:", error);
+    showToast("Không thể tải danh sách người dùng", "error");
+    return [];
+  }
+};
+
 export default {
   loadCurrentUser,
   loadUserProfile,
   updateUserProfile,
   uploadUserAvatar,
   getUser,
+  getAllUsers,
 };

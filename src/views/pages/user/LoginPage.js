@@ -1,6 +1,6 @@
-import * as authController from "../../controllers/authController.js";
-import { router } from "../../core/router/router.js";
-import { showLoading, hideLoading } from "../../core/utils/helpers.js";
+import * as authController from "../../../controllers/authController.js";
+import { router } from "../../../core/router/router.js";
+import { showLoading, hideLoading } from "../../../core/utils/helpers.js";
 
 /**
  * Login Page

@@ -1,5 +1,5 @@
-import { Layout } from "../components/Layout.js";
-import { authState } from "../../state/authState.js";
+import { Layout } from "../../components/Layout.js";
+import { authState } from "../../../state/authState.js";
 
 /**
  * Home Page

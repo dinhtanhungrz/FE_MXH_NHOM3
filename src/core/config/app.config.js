@@ -17,6 +17,7 @@ export const APP_CONFIG = {
       ME: "/users/me",
       PROFILE: "/users/profile",
       AVATAR: "/users/me/avatar",
+      PASSWORD: "/users/password",
     },
   },
 

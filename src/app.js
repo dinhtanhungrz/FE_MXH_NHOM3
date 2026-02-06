@@ -8,6 +8,7 @@ import { HomePage } from "./views/pages/user/HomePage.js";
 import { LoginPage } from "./views/pages/user/LoginPage.js";
 import { ProfilePage } from "./views/pages/user/ProfilePage.js";
 import { RegisterPage } from "./views/pages/user/RegisterPage.js";
+import SettingsPage from "./views/pages/user/SettingsPage.js";
 
 /**
  * Application Bootstrap
@@ -47,6 +48,11 @@ function registerRoutes() {
   // Protected routes
   router.addRoute("/profile", ProfilePage, {
     title: "Trang cá nhân - Social Network",
+    requiresAuth: true,
+  });
+
+  router.addRoute("/settings", SettingsPage, {
+    title: "Cài đặt - Social Network",
     requiresAuth: true,
   });
 

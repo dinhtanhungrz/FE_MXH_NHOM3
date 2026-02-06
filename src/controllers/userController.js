@@ -113,6 +113,24 @@ export const getAllUsers = async () => {
   }
 };
 
+/**
+ * Update user password
+ * @param {string} currentPassword - Old password
+ * @param {string} password - New password
+ * @param {string} confirmPassword - Confirm new password
+ * @returns {Promise<boolean>} Success status
+ */
+export const updatePassword = async (currentPassword, password, confirmPassword) => {
+  try {
+    await userService.updatePassword(currentPassword, password, confirmPassword);
+    return true;
+  } catch (error) {
+    console.error("Update password error:", error);
+    showToast(error.message || "Cập nhật mật khẩu thất bại", "error");
+    return false;
+  }
+};
+
 export default {
   loadCurrentUser,
   loadUserProfile,

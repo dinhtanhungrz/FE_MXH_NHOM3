@@ -1,7 +1,7 @@
 import { authState } from "../../state/authState.js";
 import * as authController from "../../controllers/authController.js";
 import { router } from "../../core/router/router.js";
-import { hideLoading, showLoading } from "../../core/utils/helpers.js";
+import { hideLoading, showConfirm, showLoading } from "../../core/utils/helpers.js";
 /**
  * Header Component
  */
@@ -167,7 +167,13 @@ function setupHandlerHeader() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      if (confirm("Bạn có chắc muốn đăng xuất?")) {
+      const isOk = await showConfirm({
+        title: "Đăng xuất",
+        message: "Bạn có chắc muốn đăng xuất?",
+        confirmText: "Đồng ý",
+        cancelText: "Huỷ",
+      });
+      if (isOk) {
         try {
           showLoading();
           await authController.logout();

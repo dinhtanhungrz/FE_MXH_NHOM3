@@ -63,10 +63,46 @@ export const getAllUsers = async () => {
   return response.data;
 };
 
+/**
+ * Update user password
+ * @param {string} currentPassword - current password
+ * @param {string} password - New password
+ * @param {string} confirmPassword - Confirm new password
+ * @returns {Promise<Object>} Update response
+ */
+export const updatePassword = async (currentPassword, password, confirmPassword) => {
+  const data = { currentPassword, password, confirmPassword };
+  const response = await apiClient.put(APP_CONFIG.API_ENDPOINTS.USER.PASSWORD, data);
+  return response;
+};
+
+/**
+ * Update privacy settings
+ * @param {Object} settings - Privacy settings
+ * @returns {Promise<Object>} Updated settings
+ */
+export const updatePrivacySettings = async (settings) => {
+  const response = await apiClient.put("/users/me/privacy", settings);
+  return response;
+};
+
+/**
+ * Update notification settings
+ * @param {Object} settings - Notification settings
+ * @returns {Promise<Object>} Updated settings
+ */
+export const updateNotificationSettings = async (settings) => {
+  const response = await apiClient.put("/users/me/notifications", settings);
+  return response;
+};
+
 export default {
   getCurrentUser,
   getUserProfile,
   updateProfile,
   uploadAvatar,
   getAllUsers,
+  updatePassword,
+  updatePrivacySettings,
+  updateNotificationSettings,
 };

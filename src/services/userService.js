@@ -77,22 +77,12 @@ export const updatePassword = async (currentPassword, password, confirmPassword)
 };
 
 /**
- * Update privacy settings
- * @param {Object} settings - Privacy settings
- * @returns {Promise<Object>} Updated settings
+ * Block user (Admin only)
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} Update response
  */
-export const updatePrivacySettings = async (settings) => {
-  const response = await apiClient.put("/users/me/privacy", settings);
-  return response;
-};
-
-/**
- * Update notification settings
- * @param {Object} settings - Notification settings
- * @returns {Promise<Object>} Updated settings
- */
-export const updateNotificationSettings = async (settings) => {
-  const response = await apiClient.put("/users/me/notifications", settings);
+export const blockUser = async (userId) => {
+  const response = await apiClient.patch(APP_CONFIG.API_ENDPOINTS.USER.BLOCK + `/${userId}`);
   return response;
 };
 
@@ -103,6 +93,5 @@ export default {
   uploadAvatar,
   getAllUsers,
   updatePassword,
-  updatePrivacySettings,
-  updateNotificationSettings,
+  blockUser,
 };

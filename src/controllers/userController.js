@@ -131,6 +131,16 @@ export const updatePassword = async (currentPassword, password, confirmPassword)
   }
 };
 
+/**
+ * Block user (Admin only)
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Success status
+ */
+export const blockUser = async (userId) => {
+  await userService.blockUser(userId);
+  return true;
+};
+
 export default {
   loadCurrentUser,
   loadUserProfile,
@@ -138,4 +148,6 @@ export default {
   uploadUserAvatar,
   getUser,
   getAllUsers,
+  updatePassword,
+  blockUser,
 };

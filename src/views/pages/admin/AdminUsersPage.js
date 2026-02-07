@@ -1,5 +1,5 @@
 import { AdminLayout } from "../../components/AdminLayout.js";
-import { showLoading, hideLoading, showToast } from "../../../core/utils/helpers.js";
+import { showLoading, hideLoading, showToast, showConfirm } from "../../../core/utils/helpers.js";
 import userController from "../../../controllers/userController.js";
 
 /**
@@ -9,21 +9,13 @@ export default async function AdminUsersPage() {
   showLoading();
 
   try {
-    // Lấy danh sách tất cả người dùng
-    const users = await userController.getAllUsers();
-    hideLoading();
-
-    if (!Array.isArray(users)) {
-      return AdminLayout("Không thể tải danh sách người dùng");
-    }
-
     const content = `
         <div class="space-y-6">
             <!-- Page Header -->
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">Quản lý người dùng</h1>
-                    <p class="mt-1 text-gray-600">Tổng số người dùng: <strong>${users.length}</strong></p>
+                    <p class="mt-1 text-gray-600">Tổng số người dùng: <strong id="totalUsers"></strong></p>
                 </div>
                 <div class="flex gap-2">
                     <input 
@@ -55,7 +47,7 @@ export default async function AdminUsersPage() {
                             </tr>
                         </thead>
                         <tbody id="usersTableBody" class="divide-y divide-gray-200">
-                            ${renderUsersTable(users)}
+                           
                         </tbody>
                     </table>
                 </div>
@@ -102,7 +94,7 @@ export default async function AdminUsersPage() {
 
     // Setup event listeners
     setTimeout(() => {
-      //   setupUsersPageHandlers(users);
+      renderUsersTable();
     }, 100);
 
     return layoutContent;
@@ -117,8 +109,14 @@ export default async function AdminUsersPage() {
  * Render users table rows
  * @param {Array} users - List of users
  */
-function renderUsersTable(users) {
-  return users
+async function renderUsersTable() {
+  const users = await userController.getAllUsers();
+
+  if (!Array.isArray(users)) {
+    return AdminLayout("Không thể tải danh sách người dùng");
+  }
+
+  const usersData = users
     .map(
       (user) => `
     <tr class="hover:bg-gray-50 transition">
@@ -155,7 +153,7 @@ function renderUsersTable(users) {
                 data-user-id="${user.id}"
                 data-enabled="${user.enabled}"
             >
-                ${user.enabled ? "Vô hiệu" : "Kích hoạt"}
+                ${user.enabled ? "Chặn" : "Bỏ chặn"}
             </button>
             <button 
                 class="deleteUserBtn px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition text-xs font-medium"
@@ -169,6 +167,63 @@ function renderUsersTable(users) {
   `,
     )
     .join("");
+
+  document.getElementById("usersTableBody").innerHTML = usersData;
+  document.getElementById("totalUsers").innerText = users.length;
+
+  setTimeout(() => {
+    hideLoading();
+    setupToggleUserHandlers(users);
+  }, 100);
+}
+
+function setupToggleUserHandlers(users) {
+  const buttons = document.querySelectorAll(".toggleStatusBtn");
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const userId = btn.dataset.userId;
+      const enabled = btn.dataset.enabled === "true";
+      const user = users.find((u) => u.id == userId);
+
+      if (!user) return;
+
+      showLoading();
+
+      try {
+        const isOK = await showConfirm(
+          `${enabled ? "Chặn" : "Bỏ chặn"} người dùng`,
+          `Bạn có chắc chắn muốn ${enabled ? "chặn" : "bỏ chặn"} người dùng ${user.username}?`,
+          "Đồng ý",
+          "Hủy",
+        );
+        if (!isOK) {
+          hideLoading();
+          return;
+        }
+
+        if (enabled) {
+          // Block user
+          await userController.blockUser(userId);
+        } else {
+          // Unblock user
+          //   await userController.unBlock(userId);
+        }
+
+        const action = enabled ? "Đã chặn" : "Đã bỏ chặn";
+        showToast(`${action} người dùng ${user.username}`, "success");
+
+        // Reload lại trang users
+        setTimeout(() => {
+          renderUsersTable();
+        }, 1000);
+      } catch (error) {
+        showToast("Cập nhật trạng thái không thành công", "error");
+      } finally {
+        hideLoading();
+      }
+    });
+  });
 }
 
 /**

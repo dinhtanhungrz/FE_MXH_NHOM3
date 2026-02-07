@@ -1,12 +1,13 @@
 import { router } from "./core/router/router.js";
 import { authState } from "./state/authState.js";
-import AdminPage from "./views/pages/AdminPage.js";
+import AdminPage from "./views/pages/admin/AdminPage.js";
+import AdminUsersPage from "./views/pages/admin/AdminUsersPage.js";
 
 // Import pages
-import { HomePage } from "./views/pages/HomePage.js";
-import { LoginPage } from "./views/pages/LoginPage.js";
-import { ProfilePage } from "./views/pages/ProfilePage.js";
-import { RegisterPage } from "./views/pages/RegisterPage.js";
+import { HomePage } from "./views/pages/user/HomePage.js";
+import { LoginPage } from "./views/pages/user/LoginPage.js";
+import { ProfilePage } from "./views/pages/user/ProfilePage.js";
+import { RegisterPage } from "./views/pages/user/RegisterPage.js";
 
 /**
  * Application Bootstrap
@@ -33,6 +34,12 @@ function registerRoutes() {
 
   router.addRoute("/admin", AdminPage, {
     title: "Quản lý - Social Network",
+    requiresAuth: true,
+    requiresAdmin: true,
+  });
+
+  router.addRoute("/admin/users", AdminUsersPage, {
+    title: "Quản lý người dùng - Social Network",
     requiresAuth: true,
     requiresAdmin: true,
   });

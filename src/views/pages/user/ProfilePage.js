@@ -1,7 +1,7 @@
-import { Layout } from "../components/Layout.js";
-import * as userController from "../../controllers/userController.js";
-import * as userService from "../../services/userService.js";
-import { showLoading, hideLoading, formatDate, showToast } from "../../core/utils/helpers.js";
+import { Layout } from "../../components/Layout.js";
+import * as userController from "../../../controllers/userController.js";
+import * as userService from "../../../services/userService.js";
+import { showLoading, hideLoading, formatDate, showToast } from "../../../core/utils/helpers.js";
 
 /**
  * Profile Page
@@ -385,9 +385,9 @@ const handleUpdateProfile = async (formData) => {
 
 /**
  * Setup Edit Profile Modal
- * @param {Object} user - Current user data
+ *
  */
-function setupEditProfileModal(user) {
+function setupEditProfileModal() {
   const editBtn = document.getElementById("editProfileBtn");
   const modal = document.getElementById("editProfileModal");
   const closeBtn = document.getElementById("closeEditModal");

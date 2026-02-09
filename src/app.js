@@ -9,6 +9,7 @@ import { LoginPage } from "./views/pages/user/LoginPage.js";
 import { ProfilePage } from "./views/pages/user/ProfilePage.js";
 import { RegisterPage } from "./views/pages/user/RegisterPage.js";
 import SettingsPage from "./views/pages/user/SettingsPage.js";
+import { UserProfilePage, initUserProfilePageEvents } from "./views/pages/user/UserProfilePage.js";
 
 /**
  * Application Bootstrap
@@ -48,6 +49,13 @@ function registerRoutes() {
   // Protected routes
   router.addRoute("/profile", ProfilePage, {
     title: "Trang cá nhân - Social Network",
+    requiresAuth: true,
+  });
+
+  router.addRoute("/user-profile/:id", async (params) => {
+    return await UserProfilePage(params.id);
+  }, {
+    title: "Trang cá nhân người dùng - Social Network",
     requiresAuth: true,
   });
 
@@ -136,6 +144,14 @@ function setupNavigationGuards() {
 
     // Scroll to top
     window.scrollTo(0, 0);
+
+    // Initialize event listeners for user profile page
+    if (to.path && to.path.startsWith("/user-profile/")) {
+      const userId = to.path.split("/").pop();
+      setTimeout(() => {
+        initUserProfilePageEvents(userId);
+      }, 0);
+    }
   });
 
   console.log("✓ Navigation guards setup");

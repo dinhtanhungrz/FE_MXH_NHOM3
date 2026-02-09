@@ -141,6 +141,93 @@ export const blockUser = async (userId) => {
   return true;
 };
 
+/**
+ * Send friend request
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Success status
+ */
+export const sendFriendRequest = async (userId) => {
+  console.log("Chạy");
+
+  try {
+    await userService.sendFriendRequest(userId);
+    showToast("Đã gửi lời mời kết bạn", "success");
+    return true;
+  } catch (error) {
+    console.error("Send friend request error:", error);
+    showToast(error.message || "Gửi lời mời thất bại", "error");
+    return false;
+  }
+};
+
+// /**
+//  * Cancel friend request
+//  * @param {string} userId - User ID
+//  * @returns {Promise<boolean>} Success status
+//  */
+// export const cancelFriendRequest = async (userId) => {
+//   try {
+//     await userService.cancelFriendRequest(userId);
+//     showToast("Đã hủy lời mời kết bạn", "success");
+//     return true;
+//   } catch (error) {
+//     console.error("Cancel friend request error:", error);
+//     showToast(error.message || "Hủy lời mời thất bại", "error");
+//     return false;
+//   }
+// };
+
+// /**
+//  * Accept friend request
+//  * @param {string} userId - User ID
+//  * @returns {Promise<boolean>} Success status
+//  */
+// export const acceptFriendRequest = async (userId) => {
+//   try {
+//     await userService.acceptFriendRequest(userId);
+//     showToast("Đã chấp nhận lời mời kết bạn", "success");
+//     return true;
+//   } catch (error) {
+//     console.error("Accept friend request error:", error);
+//     showToast(error.message || "Chấp nhận lời mời thất bại", "error");
+//     return false;
+//   }
+// };
+
+// /**
+//  * Reject friend request
+//  * @param {string} userId - User ID
+//  * @returns {Promise<boolean>} Success status
+//  */
+// export const rejectFriendRequest = async (userId) => {
+//   try {
+//     await userService.rejectFriendRequest(userId);
+//     showToast("Đã từ chối lời mời kết bạn", "success");
+//     return true;
+//   } catch (error) {
+//     console.error("Reject friend request error:", error);
+//     showToast(error.message || "Từ chối lời mời thất bại", "error");
+//     return false;
+//   }
+// };
+
+// /**
+//  * Remove friend
+//  * @param {string} userId - User ID
+//  * @returns {Promise<boolean>} Success status
+//  */
+// export const removeFriend = async (userId) => {
+//   try {
+//     await userService.removeFriend(userId);
+//     showToast("Đã xóa bạn bè", "success");
+//     return true;
+//   } catch (error) {
+//     console.error("Remove friend error:", error);
+//     showToast(error.message || "Xóa bạn bè thất bại", "error");
+//     return false;
+//   }
+// };
+
 export default {
   loadCurrentUser,
   loadUserProfile,
@@ -150,4 +237,10 @@ export default {
   getAllUsers,
   updatePassword,
   blockUser,
+  sendFriendRequest,
+  // cancelFriendRequest,
+  // acceptFriendRequest,
+  // rejectFriendRequest,
+  // removeFriend,
+  // getFriendStatus,
 };

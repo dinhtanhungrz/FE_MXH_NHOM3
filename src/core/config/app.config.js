@@ -20,6 +20,17 @@ export const APP_CONFIG = {
       PASSWORD: "/users/password",
       BLOCK: "/users/block",
     },
+
+    FRIEND: {
+      BASE: "/friends",
+      ADD: "/friend-request",
+      REMOVE: "/friends/remove",
+      ACCEPT: "/friends/accept",
+      REJECT: "/friends/reject",
+      CANCEL_REQUEST: "/friends/cancel-request",
+      STATUS: "/friends/status",
+      GET_LIST: "/friends/list",
+    },
   },
 
   // Storage keys

@@ -160,22 +160,22 @@ export const sendFriendRequest = async (userId) => {
   }
 };
 
-// /**
-//  * Cancel friend request
-//  * @param {string} userId - User ID
-//  * @returns {Promise<boolean>} Success status
-//  */
-// export const cancelFriendRequest = async (userId) => {
-//   try {
-//     await userService.cancelFriendRequest(userId);
-//     showToast("Đã hủy lời mời kết bạn", "success");
-//     return true;
-//   } catch (error) {
-//     console.error("Cancel friend request error:", error);
-//     showToast(error.message || "Hủy lời mời thất bại", "error");
-//     return false;
-//   }
-// };
+/**
+ * Cancel friend request
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Success status
+ */
+export const cancelFriendRequest = async (userId) => {
+  try {
+    await userService.cancelFriendRequest(userId);
+    showToast("Đã hủy lời mời kết bạn", "success");
+    return true;
+  } catch (error) {
+    console.error("Cancel friend request error:", error);
+    showToast(error.message || "Hủy lời mời thất bại", "error");
+    return false;
+  }
+};
 
 // /**
 //  * Accept friend request
@@ -238,7 +238,7 @@ export default {
   updatePassword,
   blockUser,
   sendFriendRequest,
-  // cancelFriendRequest,
+  cancelFriendRequest,
   // acceptFriendRequest,
   // rejectFriendRequest,
   // removeFriend,

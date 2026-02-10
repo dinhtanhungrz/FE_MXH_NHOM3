@@ -103,7 +103,9 @@ export const sendFriendRequest = async (userId) => {
  * @returns {Promise<Object>}
  */
 export const cancelFriendRequest = async (userId) => {
-  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.CANCEL_REQUEST, { userId });
+  const response = await apiClient.delete(
+    `${APP_CONFIG.API_ENDPOINTS.USER.BASE}/${userId}${APP_CONFIG.API_ENDPOINTS.FRIEND.CANCEL_REQUEST}`,
+  );
   return response;
 };
 

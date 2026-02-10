@@ -59,10 +59,11 @@ export const ProfilePage = async () => {
                             
                             <!-- Bio Section -->
                             ${
-                              user.bio
+                              //   user.bio
+                              true
                                 ? `
                                 <p class="text-gray-700 mt-4 text-base leading-relaxed max-w-3xl">
-                                    ${user.bio}
+                                    bio mẫu abc
                                 </p>
                             `
                                 : ""
@@ -372,7 +373,7 @@ const handleUpdateProfile = async (formData) => {
       // Reload trang để cập nhật Header, Sidebar và thông tin user
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 300);
     } else {
       hideLoading();
       showToast("Cập nhật profile thất bại", "error");

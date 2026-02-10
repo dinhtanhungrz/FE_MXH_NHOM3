@@ -24,10 +24,10 @@ export const APP_CONFIG = {
     FRIEND: {
       BASE: "/friends",
       ADD: "/friend-request",
+      CANCEL_REQUEST: "/cancel-request",
       REMOVE: "/friends/remove",
       ACCEPT: "/friends/accept",
       REJECT: "/friends/reject",
-      CANCEL_REQUEST: "/friends/cancel-request",
       STATUS: "/friends/status",
       GET_LIST: "/friends/list",
     },

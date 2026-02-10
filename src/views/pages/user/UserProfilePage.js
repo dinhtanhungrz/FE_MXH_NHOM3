@@ -1,6 +1,6 @@
 import { Layout } from "../../components/Layout.js";
 import * as userController from "../../../controllers/userController.js";
-import { showLoading, hideLoading, formatDate } from "../../../core/utils/helpers.js";
+import { showLoading, hideLoading, formatDate, showConfirm } from "../../../core/utils/helpers.js";
 import { authState } from "../../../state/authState.js";
 
 /**
@@ -382,7 +382,17 @@ export const initUserProfilePageEvents = async (userId) => {
             "px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
         }
       } else if (action === "Hủy lời mời") {
-        // success = await userController.cancelFriendRequest(userId);
+        const isOk = await showConfirm({
+          title: "Hủy lời mời",
+          message: "Bạn có chắc muốn hủy lời mời kết bạn không?",
+          confirmText: "Xác nhận",
+          cancelText: "Hủy",
+        });
+        if (!isOk) {
+          newFriendActionBtn.disabled = false;
+          return;
+        }
+        success = await userController.cancelFriendRequest(userId);
         if (success) {
           newFriendActionBtn.textContent = "Kết bạn";
           newFriendActionBtn.className =

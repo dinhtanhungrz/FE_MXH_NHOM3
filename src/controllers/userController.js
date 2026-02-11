@@ -147,8 +147,6 @@ export const blockUser = async (userId) => {
  * @returns {Promise<boolean>} Success status
  */
 export const sendFriendRequest = async (userId) => {
-  console.log("Chạy");
-
   try {
     await userService.sendFriendRequest(userId);
     showToast("Đã gửi lời mời kết bạn", "success");
@@ -211,22 +209,22 @@ export const cancelFriendRequest = async (userId) => {
 //   }
 // };
 
-// /**
-//  * Remove friend
-//  * @param {string} userId - User ID
-//  * @returns {Promise<boolean>} Success status
-//  */
-// export const removeFriend = async (userId) => {
-//   try {
-//     await userService.removeFriend(userId);
-//     showToast("Đã xóa bạn bè", "success");
-//     return true;
-//   } catch (error) {
-//     console.error("Remove friend error:", error);
-//     showToast(error.message || "Xóa bạn bè thất bại", "error");
-//     return false;
-//   }
-// };
+/**
+ * Remove friend
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Success status
+ */
+export const unfriend = async (userId) => {
+  try {
+    await userService.unfriend(userId);
+    showToast("Đã xóa bạn bè", "success");
+    return true;
+  } catch (error) {
+    console.error("Remove friend error:", error);
+    showToast(error.message || "Xóa bạn bè thất bại", "error");
+    return false;
+  }
+};
 
 export default {
   loadCurrentUser,
@@ -239,8 +237,8 @@ export default {
   blockUser,
   sendFriendRequest,
   cancelFriendRequest,
+  unfriend,
   // acceptFriendRequest,
   // rejectFriendRequest,
-  // removeFriend,
   // getFriendStatus,
 };

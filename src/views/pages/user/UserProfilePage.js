@@ -44,9 +44,9 @@ export const UserProfilePage = async (userId) => {
   switch (friendStatus) {
     case "FRIENDS":
       buttonState = {
-        text: "Bạn bè",
-        action: "remove",
-        style: "bg-green-500 hover:bg-green-600",
+        text: "Bạn bè ▾",
+        action: "friends_menu",
+        style: "bg-sky-400 hover:bg-sky-600 relative",
       };
       break;
     case "PENDING_SENT":
@@ -78,13 +78,62 @@ export const UserProfilePage = async (userId) => {
   }
 
   // Get user friend list
-  //   let friendList = [];
-  //   try {
-  //     const friendListResponse = await userService.getFriendList(userId, { limit: 10 });
-  //     friendList = friendListResponse?.data || [];
-  //   } catch (error) {
-  //     console.error("Error getting friend list:", error);
-  //   }
+  const friendListResponseTest = [
+    {
+      id: "user123",
+      username: "nguyenvana",
+      fullName: "Nguyễn Văn A",
+      email: "nguyenvana@example.com",
+      avatar: "https://example.com/avatars/user123.jpg",
+      avatarUrl: "https://example.com/avatars/user123.jpg",
+      bio: "Developer | Coffee lover",
+      phone: "0123456789",
+      address: "Hà Nội, Việt Nam",
+      dateOfBirth: "1995-05-15",
+      createdAt: "2023-01-15T10:30:00Z",
+      postsCount: 45,
+      friendsCount: 128,
+    },
+    {
+      id: "user456",
+      username: "tranthib",
+      fullName: "Trần Thị B",
+      email: "tranthib@example.com",
+      avatar: null, // Sẽ dùng UI Avatars
+      avatarUrl: null,
+      bio: "Designer | Travel enthusiast",
+      phone: "0987654321",
+      address: "TP.HCM, Việt Nam",
+      dateOfBirth: "1998-08-20",
+      createdAt: "2023-03-20T14:20:00Z",
+      postsCount: 32,
+      friendsCount: 95,
+    },
+    {
+      id: "user789",
+      username: "levanc",
+      fullName: "Lê Văn C",
+      email: "levanc@example.com",
+      avatarUrl: "https://example.com/avatars/user789.jpg",
+      bio: null,
+      phone: null,
+      address: "Đà Nẵng, Việt Nam",
+      dateOfBirth: null,
+      createdAt: "2023-06-10T09:15:00Z",
+      postsCount: 18,
+      friendsCount: 67,
+    },
+  ];
+  let friendList = [];
+  try {
+    const friendListResponse =
+      (await userController.getFriendList?.(userId, { limit: 100 })) || friendListResponseTest;
+    friendList = Array.isArray(friendListResponse)
+      ? friendListResponse
+      : friendListResponse?.data || [];
+  } catch (error) {
+    console.error("Error getting friend list:", error);
+  }
 
   const content = `
         <div class="max-w-4xl mx-auto">
@@ -141,9 +190,27 @@ export const UserProfilePage = async (userId) => {
 
                         <!-- Action Buttons -->
                         <div class="mt-4 sm:mt-0 flex space-x-3">
-                            <button id="friendActionBtn" class="px-6 py-2 ${buttonState.style} text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium">
+                            <div class="relative">
+                              <button
+                                id="friendActionBtn"
+                                class="px-4 py-2 ${buttonState.style} text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium"
+                              >
                                 <span>${buttonState.text}</span>
-                            </button>
+                              </button>
+
+                              <!-- Friends dropdown menu -->
+                              <div
+                                id="friendsDropdown"
+                                class="hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
+                              >
+                                <button
+                                  id="unfriendFromProfileBtn"
+                                  class="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 font-medium text-sm transition"
+                                >
+                                  Hủy kết bạn
+                                </button>
+                              </div>
+                            </div>
                             ${
                               buttonState.secondary
                                 ? `
@@ -313,34 +380,12 @@ export const UserProfilePage = async (userId) => {
 
                     <!-- Friends Section -->
                     <div id="friends-tab" class="tab-content">
-                         ${
-                           ""
-                           //   friendList.length > 0
-                           //     ? `
-                           //     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                           //         ${friendList
-                           //           .map(
-                           //             (friend) => `
-                           //             <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition cursor-pointer" onclick="window.location.hash = '#/user-profile/${friend.id}'">
-                           //                 <img
-                           //                     src="${friend.avatarUrl || friend.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.username)}&background=3b82f6&color=fff`}"
-                           //                     alt="${friend.username}"
-                           //                     class="w-16 h-16 rounded-full mx-auto object-cover mb-3"
-                           //                 />
-                           //                 <h3 class="font-bold text-gray-900 text-center">${friend.fullName || friend.username}</h3>
-                           //                 <p class="text-sm text-gray-600 text-center">@${friend.username}</p>
-                           //             </div>
-                           //         `,
-                           //           )
-                           //           .join("")}
-                           //     </div>
-                           // `
-                           //     : `
-                           //     <div class="text-center py-8">
-                           //         <p class="text-gray-500">Chưa có bạn bè</p>
-                           //     </div>
-                           // `
-                         }
+                            <div class="text-center py-12">
+                                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM12 14a8 8 0 00-8 8v2h16v-2a8 8 0 00-8-8z"></path>
+                                </svg>
+                                <p class="text-gray-500 text-lg font-medium">Hiển thị danh sách bạn bè</p>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -361,6 +406,9 @@ export const UserProfilePage = async (userId) => {
 export const initUserProfilePageEvents = async (userId) => {
   const friendActionBtn = document.getElementById("friendActionBtn");
   const friendRejectBtn = document.getElementById("friendRejectBtn");
+  const friendsDropdown = document.getElementById("friendsDropdown");
+  const unfriendFromProfileBtn = document.getElementById("unfriendFromProfileBtn");
+
   const tabBtns = document.querySelectorAll(".tab-btn");
 
   if (friendActionBtn) {
@@ -370,9 +418,15 @@ export const initUserProfilePageEvents = async (userId) => {
 
     newFriendActionBtn.addEventListener("click", async () => {
       const action = newFriendActionBtn.textContent.trim();
+
+      if (action.startsWith("Bạn bè")) {
+        friendsDropdown?.classList.toggle("hidden");
+        return;
+      }
       let success = false;
 
       newFriendActionBtn.disabled = true;
+      showLoading();
 
       if (action === "Kết bạn") {
         success = await userController.sendFriendRequest(userId);
@@ -409,17 +463,10 @@ export const initUserProfilePageEvents = async (userId) => {
             rejectBtn.style.display = "none";
           }
         }
-      } else if (action === "Bạn bè") {
-        // success = await userController.removeFriend(userId);
-
-        if (success) {
-          newFriendActionBtn.textContent = "Kết bạn";
-          newFriendActionBtn.className =
-            "px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
-        }
       }
 
       newFriendActionBtn.disabled = false;
+      hideLoading();
     });
   }
 
@@ -470,5 +517,64 @@ export const initUserProfilePageEvents = async (userId) => {
         tabContent.style.display = "block";
       }
     });
+  });
+
+  // Initialize friend context menu
+  const friendMenuBtns = document.querySelectorAll(".friend-menu-btn");
+  const contextMenu = document.getElementById("friend-context-menu");
+  const unfriendOption = document.getElementById("unfriend-option");
+
+  // Close context menu when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".friend-menu-btn") && !e.target.closest("#friend-context-menu")) {
+      contextMenu?.classList.add("hidden");
+    }
+  });
+
+  // Handle friend menu button clicks
+  friendMenuBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const friendCard = btn.closest(".friend-card");
+      const friendId = friendCard.dataset.friendId;
+
+      // Position context menu
+      const rect = btn.getBoundingClientRect();
+      contextMenu.dataset.friendId = friendId;
+      contextMenu.style.top = rect.bottom + window.scrollY + 5 + "px";
+      contextMenu.style.left = Math.min(rect.left, window.innerWidth - 220) + "px";
+      contextMenu.classList.remove("hidden");
+    });
+  });
+
+  if (unfriendFromProfileBtn) {
+    const newUnfriendBtn = unfriendFromProfileBtn.cloneNode(true);
+    unfriendFromProfileBtn.parentNode.replaceChild(newUnfriendBtn, unfriendFromProfileBtn);
+    newUnfriendBtn.addEventListener("click", async () => {
+      const confirmed = await showConfirm({
+        title: "Hủy kết bạn",
+        message: "Bạn có chắc muốn hủy kết bạn không?",
+        confirmText: "Xác nhận",
+        cancelText: "Hủy",
+      });
+
+      if (!confirmed) return;
+
+      const success = await userController.unfriend(userId);
+      if (success) {
+        friendsDropdown.classList.add("hidden");
+
+        const actionBtn = document.getElementById("friendActionBtn");
+        actionBtn.textContent = "Kết bạn";
+        actionBtn.className =
+          "px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
+      }
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#friendActionBtn") && !e.target.closest("#friendsDropdown")) {
+      friendsDropdown?.classList.add("hidden");
+    }
   });
 };

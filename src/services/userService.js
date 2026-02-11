@@ -91,9 +91,7 @@ export const blockUser = async (userId) => {
  * @returns {Promise<Object>}
  */
 export const sendFriendRequest = async (userId) => {
-  const response = await apiClient.post(
-    `${APP_CONFIG.API_ENDPOINTS.USER.BASE}/${userId}${APP_CONFIG.API_ENDPOINTS.FRIEND.ADD}`,
-  );
+  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.USER.FRIEND_REQUEST + userId);
   return response;
 };
 
@@ -103,39 +101,37 @@ export const sendFriendRequest = async (userId) => {
  * @returns {Promise<Object>}
  */
 export const cancelFriendRequest = async (userId) => {
-  const response = await apiClient.delete(
-    `${APP_CONFIG.API_ENDPOINTS.USER.BASE}/${userId}${APP_CONFIG.API_ENDPOINTS.FRIEND.CANCEL_REQUEST}`,
-  );
+  const response = await apiClient.delete(APP_CONFIG.API_ENDPOINTS.USER.CANCEL_REQUEST + userId);
   return response;
 };
 
-/**
- * Accept friend request
- * @param {string} userId - User ID
- * @returns {Promise<Object>}
- */
-export const acceptFriendRequest = async (userId) => {
-  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.ACCEPT, { userId });
-  return response;
-};
+// /**
+//  * Accept friend request
+//  * @param {string} userId - User ID
+//  * @returns {Promise<Object>}
+//  */
+// export const acceptFriendRequest = async (userId) => {
+//   const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.ACCEPT, { userId });
+//   return response;
+// };
+
+// /**
+//  * Reject friend request
+//  * @param {string} userId - User ID
+//  * @returns {Promise<Object>}
+//  */
+// export const rejectFriendRequest = async (userId) => {
+//   const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.REJECT, { userId });
+//   return response;
+// };
 
 /**
- * Reject friend request
+ * unfriend
  * @param {string} userId - User ID
  * @returns {Promise<Object>}
  */
-export const rejectFriendRequest = async (userId) => {
-  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.REJECT, { userId });
-  return response;
-};
-
-/**
- * Remove friend
- * @param {string} userId - User ID
- * @returns {Promise<Object>}
- */
-export const removeFriend = async (userId) => {
-  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.REMOVE, { userId });
+export const unfriend = async (userId) => {
+  const response = await apiClient.delete(APP_CONFIG.API_ENDPOINTS.USER.UNFRIEND + userId);
   return response;
 };
 
@@ -172,9 +168,9 @@ export default {
   blockUser,
   sendFriendRequest,
   cancelFriendRequest,
-  acceptFriendRequest,
-  rejectFriendRequest,
-  removeFriend,
+  unfriend,
   getFriendStatus,
   getFriendList,
+  // acceptFriendRequest,
+  // rejectFriendRequest,
 };

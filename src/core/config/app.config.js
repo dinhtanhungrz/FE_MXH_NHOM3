@@ -19,17 +19,9 @@ export const APP_CONFIG = {
       AVATAR: "/users/me/avatar",
       PASSWORD: "/users/password",
       BLOCK: "/users/block",
-    },
-
-    FRIEND: {
-      BASE: "/friends",
-      ADD: "/friend-request",
-      CANCEL_REQUEST: "/cancel-request",
-      REMOVE: "/friends/remove",
-      ACCEPT: "/friends/accept",
-      REJECT: "/friends/reject",
-      STATUS: "/friends/status",
-      GET_LIST: "/friends/list",
+      FRIEND_REQUEST: "/users/friend-request/", // + userId
+      CANCEL_REQUEST: "/users/cancel-request/", // + userId
+      UNFRIEND: "/users/unfriend/", // + userId
     },
   },
 

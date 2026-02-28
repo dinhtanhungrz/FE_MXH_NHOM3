@@ -130,7 +130,29 @@ export const register = async (
     return true;
   } catch (error) {
     console.error("Register error:", error);
-    showToast(error.message || "Đăng ký thất bại", "error");
+
+    // inspect server response for detailed validation messages
+    if (error.response) {
+      console.error("Server response:", error.response.data);
+      const data = error.response.data;
+      let toastMsg = data?.message || error.message || "Đăng ký thất bại";
+
+      // common case: validation errors array
+      if (data?.errors && Array.isArray(data.errors)) {
+        toastMsg = data.errors
+          .map((e) => {
+            if (e.field) {
+              return `${e.field}: ${e.defaultMessage || e.message}`;
+            }
+            return e.message || JSON.stringify(e);
+          })
+          .join("; ");
+      }
+
+      showToast(toastMsg, "error");
+    } else {
+      showToast(error.message || "Đăng ký thất bại", "error");
+    }
     return false;
   }
 };

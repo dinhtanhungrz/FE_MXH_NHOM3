@@ -245,6 +245,22 @@ function setupRegisterHandlers() {
       return;
     }
 
+    // basic client-side validation
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      showToast("Username phải gồm 3-20 ký tự chữ, số hoặc gạch dưới", "error");
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      showToast("Email không hợp lệ", "error");
+      return;
+    }
+
+    if (password.length < 6) {
+      showToast("Mật khẩu phải có ít nhất 6 ký tự", "error");
+      return;
+    }
+
     if (password !== confirmPassword) {
       showToast("Mật khẩu không khớp!", "error");
       return;

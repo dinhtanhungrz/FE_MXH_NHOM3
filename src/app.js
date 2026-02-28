@@ -2,6 +2,8 @@ import { router } from "./core/router/router.js";
 import { authState } from "./state/authState.js";
 import AdminPage from "./views/pages/admin/AdminPage.js";
 import AdminUsersPage from "./views/pages/admin/AdminUsersPage.js";
+import { FriendsPage } from "./views/pages/user/FriendsPage.js";
+
 
 // Import pages
 import { HomePage } from "./views/pages/user/HomePage.js";
@@ -65,23 +67,12 @@ function registerRoutes() {
   });
 
   // Placeholder routes (sẵn sàng mở rộng)
-  router.addRoute(
-    "/friends",
-    async () => {
-      return `
-            <div class="min-h-screen flex items-center justify-center">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Bạn bè</h1>
-                    <p class="text-gray-600">Tính năng đang phát triển...</p>
-                </div>
-            </div>
-        `;
-    },
-    {
-      title: "Bạn bè - Social Network",
-      requiresAuth: true,
-    },
-  );
+  router.addRoute("/friends", async (params) => {
+  return await FriendsPage(params);
+}, {
+  title: "Bạn bè - Social Network",
+  requiresAuth: true,
+});
 
   router.addRoute(
     "/messages",

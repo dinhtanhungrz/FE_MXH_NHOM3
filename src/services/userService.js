@@ -153,7 +153,7 @@ export const getFriendStatus = async (userId) => {
  * @returns {Promise<Object>}
  */
 export const getFriendList = async (userId, options = {}) => {
-  const url = `${APP_CONFIG.API_ENDPOINTS.FRIEND.GET_LIST}/${userId}`;
+  const url = `${APP_CONFIG.API_ENDPOINTS.USER.BASE}/${userId}/friends`;
   const response = await apiClient.get(url, { params: options });
   return response;
 };

@@ -23,6 +23,10 @@ export const APP_CONFIG = {
       CANCEL_REQUEST: "/users/cancel-request/", // + userId
       UNFRIEND: "/users/unfriend/", // + userId
     },
+
+    POST: {
+      BASE: "/statuses",
+    },
   },
 
   // Storage keys

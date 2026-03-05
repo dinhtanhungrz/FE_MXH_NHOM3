@@ -26,6 +26,7 @@ export const APP_CONFIG = {
 
     POST: {
       BASE: "/statuses",
+      PROFILE: "/statuses/profile",
     },
   },
 

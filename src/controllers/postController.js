@@ -37,6 +37,19 @@ export const createNewPost = async (content, visibility, images) => {
     return false;
   }
 };
+
+export const getProfilePosts = async (page = 0, limit = 5) => {
+  try {
+    const posts = await postService.getProfilePosts(page, limit);
+    return posts;
+  } catch (error) {
+    console.error("Get profile posts error:", error);
+    showToast(error.message || "Lấy bài viết thất bại", "error");
+    return [];
+  }
+};
+
 export default {
   createNewPost,
+  getProfilePosts,
 };

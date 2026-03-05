@@ -33,6 +33,12 @@ export const createPost = async (content, visibility, images) => {
   return response.data;
 };
 
+export const getProfilePosts = async (page, limit) => {
+  const response = await apiClient.get(APP_CONFIG.API_ENDPOINTS.POST.PROFILE);
+  return response.data;
+};
+
 export default {
   createPost,
+  getProfilePosts,
 };

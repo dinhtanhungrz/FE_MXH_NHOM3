@@ -1,7 +1,14 @@
 import { Layout } from "../../components/Layout.js";
 import * as userController from "../../../controllers/userController.js";
-import * as userService from "../../../services/userService.js";
-import { showLoading, hideLoading, formatDate, showToast } from "../../../core/utils/helpers.js";
+import {
+  showLoading,
+  hideLoading,
+  formatDate,
+  showToast,
+  formatRelativeTime,
+} from "../../../core/utils/helpers.js";
+import postController from "../../../controllers/postController.js";
+import authState from "../../../state/authState.js";
 
 /**
  * Profile Page
@@ -11,6 +18,7 @@ export const ProfilePage = async () => {
 
   // Load user data
   const user = await userController.loadCurrentUser();
+  const statuses = await postController.getProfilePosts();
 
   hideLoading();
 
@@ -175,11 +183,11 @@ export const ProfilePage = async () => {
                         <div class="bg-gray-50 rounded-xl p-4 mb-6">
                             <div class="flex space-x-3">
                                 <img 
-                                    src="${user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=3b82f6&color=fff`}"
+                                    src="${user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=3b82f6&color=fff`}"
                                     alt="${user.username}"
                                     class="w-10 h-10 rounded-full object-cover"
                                 />
-                                <button class="flex-1 text-left px-4 py-3 bg-white rounded-full text-gray-500 hover:bg-gray-100 transition">
+                                <button id="openCreatePostBtn" class="flex-1 text-left px-4 py-3 bg-white rounded-full text-gray-500 hover:bg-gray-100 transition">
                                     Bạn đang nghĩ gì?
                                 </button>
                             </div>
@@ -200,12 +208,8 @@ export const ProfilePage = async () => {
                         </div>
 
                         <!-- Posts List -->
-                        <div class="text-center py-12 text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <p class="text-lg font-medium">Chưa có bài viết nào</p>
-                            <p class="text-sm mt-2">Bắt đầu chia sẻ khoảnh khắc của bạn!</p>
+                        <div id="postsList" class="space-y-4">
+                            ${renderPosts(statuses || [])}
                         </div>
                     </div>
                 </div>
@@ -338,9 +342,172 @@ export const ProfilePage = async () => {
   // Thiết lập event listeners sau khi DOM được render
   setTimeout(() => {
     setupEditProfileModal(user);
+    setupPostActions();
+    initializeCreatePost();
   }, 100);
 
   return layoutContent;
+};
+
+/**
+ * Render Posts
+ * @param {Array} posts - Array of post objects from API
+ * @returns {string} HTML string of rendered posts
+ */
+const renderPosts = (posts) => {
+  console.log("Rendering posts:", posts);
+  if (!posts || posts.length === 0) {
+    return `
+      <div class="text-center py-12 text-gray-500">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <p class="text-lg font-medium">Chưa có bài viết nào</p>
+        <p class="text-sm mt-2">Bắt đầu chia sẻ khoảnh khắc của bạn!</p>
+      </div>
+    `;
+  }
+
+  return posts.map((post) => renderPostCard(post)).join("");
+};
+
+/**
+ * Render Single Post Card
+ * @param {Object} post - Post object
+ * @returns {string} HTML string of post card
+ */
+const renderPostCard = (post) => {
+  const {
+    id,
+    content,
+    createdAt,
+    imageUrls = [],
+    likesCount = 0,
+    commentsCount = 0,
+    visibility = "PUBLIC",
+    updatedAt,
+    active,
+    user,
+  } = post;
+
+  // Get current user as fallback for user info
+  const currentUser = authState.getUser();
+  const postUser = user || currentUser;
+
+  // Format date
+  const formattedDate = formatRelativeTime(createdAt);
+
+  // Visibility badge color
+  const visibilityColor =
+    {
+      PUBLIC: "bg-green-100 text-green-800",
+      FRIENDS_ONLY: "bg-blue-100 text-blue-800",
+      PRIVATE: "bg-red-100 text-red-800",
+    }[visibility] || "bg-gray-100 text-gray-800";
+
+  const visibilityLabel =
+    {
+      PUBLIC: "Công khai",
+      FRIENDS_ONLY: "Bạn bè",
+      PRIVATE: "Chỉ mình tôi",
+    }[visibility] || visibility;
+
+  // Render images
+  const imagesHtml =
+    imageUrls && imageUrls.length > 0
+      ? `
+      <div class="mt-4 grid gap-2 ${imageUrls.length === 1 ? "grid-cols-1" : imageUrls.length === 2 ? "grid-cols-2" : "grid-cols-3"} rounded-lg overflow-hidden">
+        ${imageUrls
+          .slice(0, 3)
+          .map(
+            (img, idx) => `
+          <div class="relative bg-gray-200 aspect-square overflow-hidden rounded-lg group cursor-pointer">
+            ${
+              img && typeof img === "object" && img.url
+                ? `<img src="${img.url}" alt="Post image ${idx + 1}" class="w-full h-full object-cover group-hover:opacity-90 transition" />`
+                : `<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`
+            }
+          </div>
+        `,
+          )
+          .join("")}
+        ${imageUrls.length > 3 ? `<div class="relative bg-gray-200 aspect-square rounded-lg flex items-center justify-center text-center"><div><p class="text-lg font-bold text-gray-600">+${imageUrls.length - 3}</p><p class="text-xs text-gray-500">ảnh khác</p></div></div>` : ""}
+      </div>
+    `
+      : "";
+
+  return `
+    <article class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow" data-post-id="${id}">
+      <!-- Post Header -->
+      <div class="p-4 border-b border-gray-100">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start gap-3 flex-1">
+            <img 
+              src="${postUser?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(postUser?.username || "User")}&background=3b82f6&color=fff`}"
+              alt="${postUser?.username || "User"}"
+              class="w-10 h-10 rounded-full object-cover"
+            />
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <h3 class="font-semibold text-gray-900 text-sm">${postUser?.fullName || postUser?.username || "User"}</h3>
+                <span class="text-gray-500 text-sm">·</span>
+                <time class="text-gray-500 text-sm" title="${createdAt}">${formattedDate}</time>
+              </div>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="inline-block px-2 py-0.5 text-xs font-medium rounded ${visibilityColor}">
+                  ${visibilityLabel}
+                </span>
+                ${updatedAt ? `<span class="text-xs text-gray-400">(Đã chỉnh sửa)</span>` : ""}
+              </div>
+            </div>
+          </div>
+          <button class="text-gray-400 hover:text-gray-600 transition p-2 hover:bg-gray-100 rounded-full">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post Content -->
+      <div class="px-4 py-3">
+        <p class="text-gray-900 text-sm leading-normal whitespace-pre-wrap">${content}</p>
+        ${imagesHtml}
+      </div>
+
+      <!-- Post Stats -->
+      <div class="px-4 py-2 border-t border-gray-100 border-b flex justify-between text-xs text-gray-500">
+        <button class="hover:text-blue-600 transition flex items-center gap-1">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+          </svg>
+          <span>${likesCount}</span>
+        </button>
+        <button class="hover:text-blue-600 transition flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2l-4 4z"></path>
+          </svg>
+          <span>${commentsCount}</span>
+        </button>
+      </div>
+
+      <!-- Post Actions -->
+      <div class="px-4 py-2 flex items-center justify-between text-sm">
+        <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m0 0l-2-1m2 1v2.5M14 4l-2 1m0 0l-2-1m2 1v2.5"></path>
+          </svg>
+          <span>Thích</span>
+        </button>
+        <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>Bình luận</span>
+        </button>
+      </div>
+    </article>
+  `;
 };
 
 /**
@@ -348,10 +515,10 @@ export const ProfilePage = async () => {
  * @param {string} str - String to validate
  * @returns {boolean} True if no special characters
  */
-function validateNoSpecialCharacters(str) {
+const validateNoSpecialCharacters = (str) => {
   const specialCharRegex = /[!@#$%^&*()_+=\[\]{};':"\\|,.<>\/?]/g;
   return !specialCharRegex.test(str);
-}
+};
 
 /**
  * Handle Update Profile
@@ -388,7 +555,7 @@ const handleUpdateProfile = async (formData) => {
  * Setup Edit Profile Modal
  *
  */
-function setupEditProfileModal() {
+const setupEditProfileModal = () => {
   const editBtn = document.getElementById("editProfileBtn");
   const modal = document.getElementById("editProfileModal");
   const closeBtn = document.getElementById("closeEditModal");
@@ -515,6 +682,314 @@ function setupEditProfileModal() {
     modal.classList.add("hidden");
     document.body.style.overflow = "";
   }
-}
+};
+
+/**
+ * Setup Post Actions
+ * Initialize event listeners for post interactions
+ */
+const setupPostActions = () => {
+  const posts = document.querySelectorAll("article[data-post-id]");
+
+  posts.forEach((postElement) => {
+    const postId = postElement.getAttribute("data-post-id");
+
+    // Get all action buttons from the last div (Post Actions section)
+    const actionButtons = postElement.querySelectorAll("div:last-child > button");
+
+    // Like button (first action button)
+    if (actionButtons[0]) {
+      actionButtons[0].addEventListener("click", async () => {
+        try {
+          showToast("Chức năng này đang được phát triển", "info");
+        } catch (error) {
+          showToast(error.message || "Lỗi khi thích bài viết", "error");
+        }
+      });
+    }
+
+    // Comment button (second action button)
+    if (actionButtons[1]) {
+      actionButtons[1].addEventListener("click", () => {
+        try {
+          showToast("Chức năng bình luận đang được phát triển", "info");
+        } catch (error) {
+          showToast(error.message || "Lỗi khi bình luận", "error");
+        }
+      });
+    }
+
+    // Share button (third action button)
+    if (actionButtons[2]) {
+      actionButtons[2].addEventListener("click", () => {
+        try {
+          showToast("Chức năng chia sẻ đang được phát triển", "info");
+        } catch (error) {
+          showToast(error.message || "Lỗi khi chia sẻ bài viết", "error");
+        }
+      });
+    }
+
+    // More options button (three dots in header)
+    const moreBtn = postElement.querySelector("div:first-child button:last-child");
+    if (moreBtn) {
+      moreBtn.addEventListener("click", () => {
+        showToast("Chức năng này đang được phát triển", "info");
+      });
+    }
+  });
+};
+
+/**
+ * Initialize Create Post Modal
+ */
+const initializeCreatePost = () => {
+  const openBtn = document.getElementById("openCreatePostBtn");
+
+  if (!openBtn) return;
+
+  openBtn.addEventListener("click", () => {
+    // Nếu modal chưa tồn tại thì append vào body
+    let modal = document.getElementById("createPostModal");
+
+    if (!modal) {
+      document.body.insertAdjacentHTML("beforeend", CreatePostModal());
+
+      initializePostModal(); // gắn event close, submit...
+    }
+
+    // Hiển thị modal
+    const modalElement = document.getElementById("createPostModal");
+    modalElement.classList.remove("hidden");
+    modalElement.classList.add("flex"); // nếu modal dùng flex để center
+  });
+};
+
+/**
+ * Create Post Modal HTML
+ */
+const CreatePostModal = () => {
+  const user = {
+    username:
+      document
+        .querySelector(".text-lg.text-gray-500.mt-2.font-medium")
+        ?.textContent?.replace("@", "") || "User",
+    avatarUrl:
+      document.querySelector("img[alt][class*='rounded-full']")?.src ||
+      `https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff`,
+  };
+
+  return `
+    <div 
+      id="createPostModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl animate-fadeIn">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900">Tạo bài viết</h2>
+          <button 
+            id="closeCreatePostModal"
+            class="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="px-6 py-4">
+          <div class="flex items-center space-x-3 mb-4">
+            <img 
+              id="createPostAvatar"
+              src="${user.avatarUrl}"
+              class="w-12 h-12 rounded-full object-cover"
+            />
+            <div>
+              <p id="createPostUsername" class="font-semibold text-gray-900">
+                ${user.username}
+              </p>
+              <select 
+                id="postPrivacy"
+                class="text-sm bg-gray-100 rounded-lg px-2 py-1 mt-1 outline-none"
+              >
+                <option value="PUBLIC">🌍 Công khai</option>
+                <option value="FRIENDS_ONLY">👥 Bạn bè</option>
+                <option value="ONLY_ME">🔒 Chỉ mình tôi</option>
+              </select>
+            </div>
+          </div>
+
+          <textarea
+            id="postContent"
+            rows="4"
+            placeholder="Bạn đang nghĩ gì?"
+            class="w-full resize-none text-lg outline-none placeholder-gray-400"
+          ></textarea>
+
+          <!-- Preview Image -->
+            <div id="postImagePreviewWrapper" 
+                class="mt-4 hidden grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 space-y-4">
+          
+          <div class="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3">
+            <span class="font-medium text-gray-700">Thêm vào bài viết</span>
+            <div class="flex items-center space-x-3">
+              
+              <label class="cursor-pointer">
+                <input 
+                  type="file" 
+                  id="postImageInput" 
+                  multiple
+                  accept="image/*,video/*"
+                  class="hidden"
+                />
+                <svg class="w-6 h-6 text-green-500 hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                  </path>
+                </svg>
+              </label>
+
+              <button id="addFeelingBtn">
+                <svg class="w-6 h-6 text-yellow-500 hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                  </path>
+                </svg>
+              </button>
+
+            </div>
+          </div>
+
+          <button
+            id="submitPostBtn"
+            class="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition disabled:opacity-50"
+            disabled
+          >
+            Đăng
+          </button>
+
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+/**
+ * Initialize Post Modal Event Listeners
+ */
+const initializePostModal = () => {
+  const modal = document.getElementById("createPostModal");
+  if (!modal) return;
+
+  const closeBtn = document.getElementById("closeCreatePostModal");
+  const contentInput = document.getElementById("postContent");
+  const submitBtn = document.getElementById("submitPostBtn");
+  const imageInput = document.getElementById("postImageInput");
+  const previewWrapper = document.getElementById("postImagePreviewWrapper");
+
+  // ===== CLOSE MODAL FUNCTION =====
+  const closeModal = () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+    // reset form
+    contentInput.value = "";
+    imageInput.value = "";
+    previewWrapper.classList.add("hidden");
+    submitBtn.disabled = true;
+  };
+
+  // ===== ENABLE/DISABLE SUBMIT =====
+  const toggleSubmitState = () => {
+    const hasText = contentInput.value.trim().length > 0;
+    const hasImage = imageInput.files && imageInput.files.length > 0;
+
+    submitBtn.disabled = !(hasText || hasImage);
+  };
+
+  // ===== EVENTS =====
+
+  // Close button
+  closeBtn.addEventListener("click", closeModal);
+
+  // Click overlay để đóng
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Text input
+  contentInput.addEventListener("input", toggleSubmitState);
+
+  imageInput.addEventListener("change", () => {
+    const files = Array.from(imageInput.files || []);
+
+    // Clear preview cũ
+    previewWrapper.innerHTML = "";
+
+    if (files.length === 0) {
+      previewWrapper.classList.add("hidden");
+      toggleSubmitState();
+      return;
+    }
+
+    previewWrapper.classList.remove("hidden");
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const url = e.target.result;
+
+        let element;
+
+        if (file.type.startsWith("image/")) {
+          element = document.createElement("img");
+          element.src = url;
+          element.className = "w-full h-40 object-cover rounded-lg";
+        } else if (file.type.startsWith("video/")) {
+          element = document.createElement("video");
+          element.src = url;
+          element.controls = true;
+          element.className = "w-full h-40 object-cover rounded-lg";
+        }
+
+        previewWrapper.appendChild(element);
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    toggleSubmitState();
+  });
+
+  submitBtn.addEventListener("click", async () => {
+    const content = contentInput.value.trim();
+    const visibility = document.getElementById("postPrivacy").value;
+    const files = Array.from(imageInput.files || []);
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Đang đăng bài...";
+
+      await postController.createNewPost(content, visibility, files);
+
+      closeModal();
+    } catch (error) {
+      console.error(error);
+      alert("Có lỗi xảy ra khi đăng bài");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Đăng";
+    }
+  });
+};
 
 export default ProfilePage;

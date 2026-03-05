@@ -23,9 +23,15 @@ export const APP_CONFIG = {
       CANCEL_REQUEST: "/users/cancel-request/", // + userId
       UNFRIEND: "/users/unfriend/", // + userId
     },
+
     FRIEND: {
       LIST: "/friends",
       COMMON: "/friends/common/:targetId",
+    },
+
+    POST: {
+      BASE: "/statuses",
+      PROFILE: "/statuses/profile",
     },
   },
 

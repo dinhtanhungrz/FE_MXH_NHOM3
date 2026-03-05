@@ -24,7 +24,7 @@ export const APP_CONFIG = {
       UNFRIEND: "/users/unfriend/", // + userId
     },
     FRIEND: {
-      LIST: "/friends",
+      // LIST: "/users/friends",
       COMMON: "/friends/common/:targetId",
     },
   },

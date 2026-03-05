@@ -3,14 +3,15 @@ import * as userController from "../../../controllers/userController.js";
 import { showLoading, hideLoading, formatDate, showConfirm } from "../../../core/utils/helpers.js";
 import { authState } from "../../../state/authState.js";
 import * as friendService from "../../../services/friendService.js"; // used for mutual friends count
+import { renderUserLink } from "../../viewHelpers.js";
 
 /**
  * User Profile Page (View other users' profiles)
  * Hiển thị trang cá nhân của người dùng khác
  */
-export const UserProfilePage = async (userId) => {
+export const UserProfilePage = async (params) => {
   showLoading();
-
+  let userId = params?.id;
   // Fix: Extract userId from hash if not provided (for direct navigation)
   if (!userId || userId === ":id") {
     const hashParts = window.location.hash.split("/");
@@ -170,7 +171,7 @@ export const UserProfilePage = async (userId) => {
                                 <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
                                     ${user.fullName || user.username}
                                 </h1>
-                                <p class="text-lg text-gray-500 mt-2 font-medium">@${user.username}</p>
+                                ${renderUserLink(user)}
                             </div>
                             
                             <!-- Bio Section -->
@@ -460,9 +461,10 @@ export const initUserProfilePageEvents = async (userId) => {
   const friendRejectBtn = document.getElementById("friendRejectBtn");
   const friendsDropdown = document.getElementById("friendsDropdown");
   const unfriendFromProfileBtn = document.getElementById("unfriendFromProfileBtn");
-
+  const friendsTabBtn = document.getElementById("friends-tab-btn");
+  const mutualTabBtn = document.getElementById("mutual-tab-btn");
   const tabBtns = document.querySelectorAll(".tab-btn");
-
+  const friendsListContainer = document.getElementById("friends-list-container");
   // Mutual friends state management
   let mutualFriendsState = {
     currentPage: 0,
@@ -479,7 +481,17 @@ export const initUserProfilePageEvents = async (userId) => {
   const mutualFriendsContainer = document.getElementById("mutual-friends-container");
   const mutualLoadingDiv = document.getElementById("mutual-loading");
   const mutualEndMessage = document.getElementById("mutual-end-message");
+  if (mutualFriendsContainer) {
+  mutualFriendsContainer.addEventListener("click", (e) => {
+    const link = e.target.closest(".user-link");
+    if (!link) return;
 
+    const id = link.dataset.userId;
+    if (!id) return;
+
+    window.location.hash = `#/user-profile/${id}`;
+  });
+}
   // Safety check for required elements
   if (!mutualFriendsContainer) {
     console.warn("[UserProfilePage] mutual-friends-container element not found");
@@ -514,8 +526,9 @@ export const initUserProfilePageEvents = async (userId) => {
           
           <!-- User Info -->
           <div class="flex-1 min-w-0">
-            <h4 class="font-bold text-gray-900 truncate">${friend.fullName || friend.username}</h4>
-            <p class="text-sm text-gray-500">@${friend.username}</p>
+<h4>
+  ${renderUserLink(friend, "font-bold text-gray-900 truncate")}
+</h4>            <p class="text-sm text-gray-500">@${friend.username}</p>
             <p class="text-xs text-gray-400 mt-1">${mutualCount} bạn chung</p>
           </div>
 
@@ -532,23 +545,36 @@ export const initUserProfilePageEvents = async (userId) => {
 
   // Loader for user friends
   const loadUserFriends = async () => {
-    try {
-      const resp = await userController.getFriendList(userId, { limit: 50 });
-      const friends = resp?.data || resp || [];
-      mutualFriendsContainer.innerHTML = friends.map(renderMutualFriendCard).join("");
-      // Update header
-      if (friendsTitle) friendsTitle.textContent = "Danh sách bạn bè";
-      if (toggleMutualBtn) toggleMutualBtn.textContent = "Xem bạn chung";
-      friendsViewMode = "friends";
-    } catch (e) {
-      console.error("load friends error", e);
+  try {
+    const resp = await userController.getFriendList(userId, { limit: 50 });
+    const friends = resp?.data?.content || [];
+    if (!Array.isArray(friends)) {
+      console.error("Friends is not array:", friends);
+      return;
     }
-  };
+    friendsListContainer.innerHTML =
+      friends.map(renderMutualFriendCard).join("");
+
+    friendsListContainer.classList.remove("hidden");
+    mutualFriendsContainer.classList.add("hidden");
+
+    friendsViewMode = "friends";
+
+    mutualFriendsState.currentPage = 0;
+    mutualFriendsState.hasMore = true;
+
+  } catch (e) {
+    console.error("load friends error", e);
+  }
+};
 
   // Helper function to load mutual friends
   const loadMutualFriends = async (page = 0) => {
     if (mutualFriendsState.isLoading || !mutualFriendsState.hasMore) return;
+    friendsListContainer.classList.add("hidden");
+    mutualFriendsContainer.classList.remove("hidden");
 
+friendsViewMode = "mutual";
     // Guard: do not call API if userId is null/undefined or not a number
     if (!userId || isNaN(userId)) {
       console.warn("[UserProfilePage] userId is invalid, skip mutual friends API call");
@@ -567,8 +593,8 @@ export const initUserProfilePageEvents = async (userId) => {
       }
       const response = await friendService.getCommonFriends(userId, page, mutualFriendsState.pageSize);
       
-      const data = response?.data || response;
-      const friends = data?.content || data?.data || [];
+      const data = response;
+      const friends = data?.content || [];
       const total = data?.totalElements || 0;
       const isLast = data?.last || page * mutualFriendsState.pageSize + friends.length >= total;
 
@@ -745,41 +771,52 @@ export const initUserProfilePageEvents = async (userId) => {
   }
 
   // Tab switching functionality
-  tabBtns.forEach((btn) => {
-    // Clone to remove old event listeners and prevent duplicates
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
+  // Tab switching functionality
+tabBtns.forEach((btn) => {
+  btn.addEventListener("click", async () => {
 
-    newBtn.addEventListener("click", async () => {
-        const tabName = newBtn.getAttribute("data-tab");
+    const tabName = btn.getAttribute("data-tab");
 
-      // Remove active class from all buttons and contents
-      document.querySelectorAll(".tab-btn").forEach((b) => {
-        b.classList.remove("text-blue-600", "border-b-2", "border-blue-600");
-        b.classList.add("text-gray-600", "hover:text-gray-900");
-      });
-
-      document.querySelectorAll(".tab-content").forEach((content) => {
-        content.classList.remove("active");
-        content.style.display = "none";
-      });
-
-      // Add active class to clicked button and corresponding content
-      newBtn.classList.remove("text-gray-600", "hover:text-gray-900");
-      newBtn.classList.add("text-blue-600", "border-b-2", "border-blue-600");
-    if (tabName === "friends") {
-        if (mutualFriendsState.currentPage === 0) {
-            await loadMutualFriends(0);
-        }
-    }
-      const tabContent = document.getElementById(tabName + "-tab");
-      if (tabContent) {
-        tabContent.classList.add("active");
-        tabContent.style.display = "block";
-      }
+    // Remove active class from all buttons
+    document.querySelectorAll(".tab-btn").forEach((b) => {
+      b.classList.remove("text-blue-600", "border-b-2", "border-blue-600");
+      b.classList.add("text-gray-600", "hover:text-gray-900");
     });
-  });
 
+    // Hide all tab contents
+    document.querySelectorAll(".tab-content").forEach((content) => {
+      content.classList.remove("active");
+      content.style.display = "none";
+    });
+
+    // Activate clicked button
+    btn.classList.remove("text-gray-600", "hover:text-gray-900");
+    btn.classList.add("text-blue-600", "border-b-2", "border-blue-600");
+
+    // Show corresponding tab
+    const tabContent = document.getElementById(tabName + "-tab");
+    if (tabContent) {
+      tabContent.classList.add("active");
+      tabContent.style.display = "block";
+    }
+  });
+});
+
+  if (friendsTabBtn) {
+  friendsTabBtn.addEventListener("click", async () => {
+    friendsTabBtn.classList.add("bg-blue-500");
+    mutualTabBtn?.classList.remove("bg-blue-500");
+    await loadUserFriends();
+  });
+}
+
+if (mutualTabBtn) {
+  mutualTabBtn.addEventListener("click", async () => {
+    mutualTabBtn.classList.add("bg-blue-500");
+    friendsTabBtn?.classList.remove("bg-blue-500");
+    await loadMutualFriends(0);
+  });
+}
   // Initialize friend context menu
   const friendMenuBtns = document.querySelectorAll(".friend-menu-btn");
   const contextMenu = document.getElementById("friend-context-menu");

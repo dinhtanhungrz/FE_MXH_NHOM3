@@ -2,9 +2,9 @@ import { Layout } from "../../components/Layout.js";
 import { authState } from "../../../state/authState.js";
 
 /**
- * Home Page
+ * New Feeds Page
  */
-export const HomePage = async () => {
+export const NewFeeds = async () => {
   const user = authState.getUser();
 
   const isAuthenticated = authState.isAuthenticated();
@@ -35,18 +35,6 @@ export const HomePage = async () => {
                                         class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition text-center"
                                     >
                                         Đăng ký miễn phí
-                                    </a>
-                                    <a 
-                                        href="#/login" 
-                                        class="px-4 py-2 bg-white text-gray-800 rounded-lg font-semibold border-2 border-gray-300 hover:border-gray-400 transition text-center"
-                                    >
-                                        Đăng nhập
-                                    </a>
-                                    <a 
-                                        href="#/newfeeds" 
-                                        class="px-4 py-2 bg-white text-gray-800 rounded-lg font-semibold border-2 border-gray-300 hover:border-gray-400 transition text-center"
-                                    >
-                                        Xem dòng thời gian
                                     </a>
                                 </div>
                             </div>
@@ -274,4 +262,4 @@ export const HomePage = async () => {
   return Layout(content);
 };
 
-export default HomePage;
+export default NewFeeds;

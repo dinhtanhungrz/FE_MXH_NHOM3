@@ -1,5 +1,7 @@
-import api from "../core/api/api.js";
+import apiClient from "../core/api/apiClient.js";
 
-export async function getCommonFriends(userId, page, size = 10) {
-  return await api.get(`/users/${userId}/mutual-friends?page=${page}&size=${size}`);
+export function getCommonFriends(userId, page, size = 10) {
+  return apiClient.get(
+    `/users/${userId}/mutual-friends?page=${page}&size=${size}`
+  );
 }

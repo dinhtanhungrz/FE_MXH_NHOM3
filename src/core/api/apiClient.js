@@ -47,6 +47,7 @@ apiClient.interceptors.request.use(
     if (!token) {
       token = localStorage.getItem("accessToken") || localStorage.getItem("token");
     }
+    console.log("TOKEN BEING SENT:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

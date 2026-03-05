@@ -1,5 +1,5 @@
 import { getCommonFriends } from "../../../services/friendService.js";
-
+import { renderUserLink } from "../../viewHelpers.js";
 let page = 0;
 let loading = false;
 let last = false;
@@ -39,7 +39,18 @@ async function init() {
     }
   });
 }
+  const container = document.getElementById("mutualList");
+if (container) {
+    container.addEventListener("click", (e) => {
+      const link = e.target.closest(".user-link");
+      if (!link) return;
 
+      const id = link.dataset.userId;
+      if (!id) return;
+
+      window.location.hash = `#/user-profile/${id}`;
+    });
+  }
 async function load() {
   if (loading || last) return;
 
@@ -66,7 +77,7 @@ function render(users) {
       <div class="flex items-center gap-3 p-3 bg-white rounded-xl shadow">
         <img src="${avatar}" class="w-12 h-12 rounded-full object-cover"/>
         <div>
-          <p class="font-semibold">${u.username}</p>
+          <p>${renderUserLink(u)}</p>
           <p class="text-sm text-gray-500">${u.mutualCount || 0} bạn chung</p>
         </div>
       </div>

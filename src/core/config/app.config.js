@@ -25,7 +25,7 @@ export const APP_CONFIG = {
     },
 
     FRIEND: {
-      LIST: "/friends",
+      // LIST: "/users/friends",
       COMMON: "/friends/common/:targetId",
     },
 

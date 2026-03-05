@@ -2,13 +2,23 @@ import { Layout } from "../../components/Layout.js";
 import * as userController from "../../../controllers/userController.js";
 import { showLoading, hideLoading, formatDate, showConfirm } from "../../../core/utils/helpers.js";
 import { authState } from "../../../state/authState.js";
+import * as friendService from "../../../services/friendService.js"; // used for mutual friends count
+import { renderUserLink } from "../../viewHelpers.js";
 
 /**
  * User Profile Page (View other users' profiles)
  * Hiển thị trang cá nhân của người dùng khác
  */
-export const UserProfilePage = async (userId) => {
+export const UserProfilePage = async (params) => {
   showLoading();
+  let userId = params?.id;
+  // Fix: Extract userId from hash if not provided (for direct navigation)
+  if (!userId || userId === ":id") {
+    const hashParts = window.location.hash.split("/");
+    userId = hashParts[2];
+  }
+  // Ensure userId is a number
+  userId = Number(userId);
 
   // Load user data
   const user = await userController.loadUserProfile(userId);
@@ -161,7 +171,7 @@ export const UserProfilePage = async (userId) => {
                                 <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
                                     ${user.fullName || user.username}
                                 </h1>
-                                <p class="text-lg text-gray-500 mt-2 font-medium">@${user.username}</p>
+                                ${renderUserLink(user)}
                             </div>
                             
                             <!-- Bio Section -->
@@ -192,7 +202,7 @@ export const UserProfilePage = async (userId) => {
                         <div class="mt-4 sm:mt-0 flex space-x-3">
                             <div class="relative">
                               <button
-                                id="friendActionBtn"
+                                id="friendActionBtn" data-action="${buttonState.action}"
                                 class="px-4 py-2 ${buttonState.style} text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium"
                               >
                                 <span>${buttonState.text}</span>
@@ -204,7 +214,7 @@ export const UserProfilePage = async (userId) => {
                                 class="hidden absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
                               >
                                 <button
-                                  id="unfriendFromProfileBtn"
+                                  id="unfriendFromProfileBtn" data-action="${buttonState.action}"
                                   class="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 font-medium text-sm transition"
                                 >
                                   Hủy kết bạn
@@ -214,12 +224,13 @@ export const UserProfilePage = async (userId) => {
                             ${
                               buttonState.secondary
                                 ? `
-                                <button id="friendRejectBtn" class="px-6 py-2 ${buttonState.secondary.style} text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium">
+                                <button id="friendRejectBtn" data-action="${buttonState.secondary.action}"
+                                class="px-6 py-2 ${buttonState.secondary.style} text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium">
                                     <span>${buttonState.secondary.text}</span>
                                 </button>
                             `
                                 : `
-                                <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                                <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" data-action="${buttonState.action}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
                                     </svg>
@@ -279,13 +290,16 @@ export const UserProfilePage = async (userId) => {
                 <!-- Tabs Header -->
                 <div class="border-b border-gray-200">
                     <nav class="flex">
-                        <button class="tab-btn px-6 py-4 text-blue-600 border-b-2 border-blue-600 font-medium active" data-tab="posts">
+                        <button class="tab-btn px-6 py-4 text-blue-600 border-b-2 border-blue-600 font-medium active" 
+                        data-action="${buttonState.action}"data-tab="posts">
                             Bài viết
                         </button>
-                        <button class="tab-btn px-6 py-4 text-gray-600 hover:text-gray-900 font-medium" data-tab="about">
+                        <button class="tab-btn px-6 py-4 text-gray-600 hover:text-gray-900 font-medium" 
+                        data-action="${buttonState.action}"data-tab="about">
                             Giới thiệu
                         </button>
-                        <button class="tab-btn px-6 py-4 text-gray-600 hover:text-gray-900 font-medium" data-tab="friends">
+                        <button class="tab-btn px-6 py-4 text-gray-600 hover:text-gray-900 font-medium" 
+                        data-action="${buttonState.action}"data-tab="friends">
                             Bạn bè (${user.friendsCount || 0})
                         </button>
                     </nav>
@@ -304,7 +318,7 @@ export const UserProfilePage = async (userId) => {
                     </div>
 
                     <!-- About Section -->
-                    <div id="about-tab" class="tab-content">
+                    <div id="about-tab" class="tab-content" style="display: none;">
                         <div class="space-y-6">
                             <div class="bg-gray-50 rounded-lg p-4">
                                 <h3 class="font-bold text-gray-900 mb-3">Thông tin cơ bản</h3>
@@ -379,13 +393,50 @@ export const UserProfilePage = async (userId) => {
                     </div>
 
                     <!-- Friends Section -->
-                    <div id="friends-tab" class="tab-content">
-                            <div class="text-center py-12">
-                                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM12 14a8 8 0 00-8 8v2h16v-2a8 8 0 00-8-8z"></path>
-                                </svg>
-                                <p class="text-gray-500 text-lg font-medium">Hiển thị danh sách bạn bè</p>
+                    <div id="friends-tab" class="tab-content" style="display: none;">
+                        <!-- Friends/Mutual Tabs -->
+                        <div class="mb-6">
+                          <div class="mb-4 flex items-center justify-between">
+                            <h3 id="friends-title" class="text-2xl font-bold text-gray-900">
+                              Danh sách bạn bè
+                            </h3>
+                            <div>
+                              <button
+                                id="friends-tab-btn"
+                                class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm mr-2 active"
+                              >
+                                Bạn bè
+                              </button>
+                              <button
+                                id="mutual-tab-btn"
+                                class="px-3 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded-lg text-sm"
+                              >
+                                Bạn chung
+                              </button>
                             </div>
+                          </div>
+
+                          <!-- Loading Indicator (always present, toggled by JS) -->
+                          <div id="mutual-loading" class="hidden text-center py-8">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <p class="text-gray-500 mt-2">Đang tải...</p>
+                          </div>
+
+                          <!-- Friends List Grid -->
+                          <div id="friends-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
+                            <!-- Friends will be loaded here -->
+                          </div>
+
+                          <!-- Mutual Friends Grid -->
+                          <div id="mutual-friends-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 hidden">
+                            <!-- Mutual friends will be loaded here -->
+                          </div>
+
+                          <!-- End of List Message -->
+                          <div id="mutual-end-message" class="hidden text-center py-8">
+                            <p class="text-gray-500 text-sm">Không còn bạn chung nào</p>
+                          </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -404,70 +455,302 @@ export const UserProfilePage = async (userId) => {
 
 // Initialize event listeners after DOM is loaded
 export const initUserProfilePageEvents = async (userId) => {
+    // Friends view mode state
+    let friendsViewMode = "friends"; // friends | mutual
   const friendActionBtn = document.getElementById("friendActionBtn");
   const friendRejectBtn = document.getElementById("friendRejectBtn");
   const friendsDropdown = document.getElementById("friendsDropdown");
   const unfriendFromProfileBtn = document.getElementById("unfriendFromProfileBtn");
-
+  const friendsTabBtn = document.getElementById("friends-tab-btn");
+  const mutualTabBtn = document.getElementById("mutual-tab-btn");
   const tabBtns = document.querySelectorAll(".tab-btn");
+  const friendsListContainer = document.getElementById("friends-list-container");
+  // Mutual friends state management
+  let mutualFriendsState = {
+    currentPage: 0,
+    totalElements: 0,
+    pageSize: 10,
+    isLoading: false,
+    hasMore: true,
+  };
+
+  // Elements
+  const mutualTitleCount = document.getElementById("mutual-friends-count");
+  const friendsTitle = document.getElementById("friends-title");
+  const toggleMutualBtn = document.getElementById("toggle-mutual-btn");
+  const mutualFriendsContainer = document.getElementById("mutual-friends-container");
+  const mutualLoadingDiv = document.getElementById("mutual-loading");
+  const mutualEndMessage = document.getElementById("mutual-end-message");
+  if (mutualFriendsContainer) {
+  mutualFriendsContainer.addEventListener("click", (e) => {
+    const link = e.target.closest(".user-link");
+    if (!link) return;
+
+    const id = link.dataset.userId;
+    if (!id) return;
+
+    window.location.hash = `#/user-profile/${id}`;
+  });
+}
+  // Safety check for required elements
+  if (!mutualFriendsContainer) {
+    console.warn("[UserProfilePage] mutual-friends-container element not found");
+    return;
+  }
+
+  // Fix: Extract userId from hash if not provided (for direct navigation)
+  if (!userId || userId === ":id") {
+    const hashParts = window.location.hash.split("/");
+    userId = hashParts[2];
+  }
+  // Ensure userId is a number
+  userId = Number(userId);
+  console.log("[debug] userId:", userId, "type:", typeof userId);
+
+  // Helper function to render a mutual friend card
+  const renderMutualFriendCard = (friend) => {
+    // Count mutual friends (you might need to implement this in the backend)
+    const mutualCount = friend.mutualFriendsCount || 0;
+    
+    return `
+      <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+        <div class="flex items-center space-x-4">
+          <!-- Avatar -->
+          <div class="flex-shrink-0">
+            <img 
+              src="${friend.avatarUrl || friend.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.username || "User")}&size=80&background=3b82f6&color=fff`}"
+              alt="${friend.username}"
+              class="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
+            />
+          </div>
+          
+          <!-- User Info -->
+          <div class="flex-1 min-w-0">
+<h4>
+  ${renderUserLink(friend, "font-bold text-gray-900 truncate")}
+</h4>            <p class="text-sm text-gray-500">@${friend.username}</p>
+            <p class="text-xs text-gray-400 mt-1">${mutualCount} bạn chung</p>
+          </div>
+
+          <!-- Action Button -->
+          <div class="flex-shrink-0">
+            <button class="view-profile-btn px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition" data-user-id="${friend.id}">
+              Xem
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  // Loader for user friends
+  const loadUserFriends = async () => {
+  try {
+    const resp = await userController.getFriendList(userId, { limit: 50 });
+    const friends = resp?.data?.content || [];
+    if (!Array.isArray(friends)) {
+      console.error("Friends is not array:", friends);
+      return;
+    }
+    friendsListContainer.innerHTML =
+      friends.map(renderMutualFriendCard).join("");
+
+    friendsListContainer.classList.remove("hidden");
+    mutualFriendsContainer.classList.add("hidden");
+
+    friendsViewMode = "friends";
+
+    mutualFriendsState.currentPage = 0;
+    mutualFriendsState.hasMore = true;
+
+  } catch (e) {
+    console.error("load friends error", e);
+  }
+};
+
+  // Helper function to load mutual friends
+  const loadMutualFriends = async (page = 0) => {
+    if (mutualFriendsState.isLoading || !mutualFriendsState.hasMore) return;
+    friendsListContainer.classList.add("hidden");
+    mutualFriendsContainer.classList.remove("hidden");
+
+friendsViewMode = "mutual";
+    // Guard: do not call API if userId is null/undefined or not a number
+    if (!userId || isNaN(userId)) {
+      console.warn("[UserProfilePage] userId is invalid, skip mutual friends API call");
+      return;
+    }
+
+    mutualFriendsState.isLoading = true;
+    if (mutualLoadingDiv) mutualLoadingDiv.classList.remove("hidden");
+    if (mutualEndMessage) mutualEndMessage.classList.add("hidden");
+
+    try {
+      // Ensure userId is not ":id" or null
+      if (!userId || userId === ":id") {
+        const hashParts = window.location.hash.split("/");
+        userId = hashParts[2];
+      }
+      const response = await friendService.getCommonFriends(userId, page, mutualFriendsState.pageSize);
+      
+      const data = response;
+      const friends = data?.content || [];
+      const total = data?.totalElements || 0;
+      const isLast = data?.last || page * mutualFriendsState.pageSize + friends.length >= total;
+
+      mutualFriendsState.totalElements = total;
+      mutualFriendsState.isLoading = false;
+
+      // Render friends
+      if (friends.length > 0) {
+        const html = friends.map(renderMutualFriendCard).join("");
+        if (page === 0) {
+          if (mutualFriendsContainer) mutualFriendsContainer.innerHTML = html;
+        } else {
+          if (mutualFriendsContainer) mutualFriendsContainer.innerHTML += html;
+        }
+        mutualFriendsState.currentPage = page + 1;
+        // Update header
+        if (friendsTitle) friendsTitle.textContent = `Bạn chung (${mutualFriendsState.totalElements})`;
+        if (toggleMutualBtn) toggleMutualBtn.textContent = "Xem bạn bè";
+        friendsViewMode = "mutual";
+      }
+
+      // Check if there are more friends to load
+      if (isLast || friends.length < mutualFriendsState.pageSize) {
+        mutualFriendsState.hasMore = false;
+        if (mutualFriendsState.totalElements === 0) {
+          if (mutualEndMessage) mutualEndMessage.classList.remove("hidden");
+        }
+      }
+
+      if (mutualLoadingDiv) mutualLoadingDiv.classList.add("hidden");
+    } catch (error) {
+      console.error("Error loading mutual friends:", error);
+      if (mutualLoadingDiv) mutualLoadingDiv.classList.add("hidden");
+      mutualFriendsState.isLoading = false;
+    }
+  };
+
+  // Add event listeners to view profile buttons (move outside loadMutualFriends to avoid duplicate listeners)
+  if (mutualFriendsContainer) {
+    mutualFriendsContainer.addEventListener("click", (e) => {
+      const btn = e.target.closest(".view-profile-btn");
+      if (!btn) return;
+      const friendUserId = btn.getAttribute("data-user-id");
+      window.location.hash = `#/user-profile/${friendUserId}`;
+    });
+  }
+
+  // Toggle button logic
+  if (toggleMutualBtn) {
+    toggleMutualBtn.addEventListener("click", async () => {
+      if (friendsViewMode === "friends") {
+        await loadMutualFriends(0);
+        if (mutualTitleCount) mutualTitleCount.textContent = mutualFriendsState.totalElements;
+      } else {
+        await loadUserFriends();
+      }
+    });
+  }
+
+  // Initialize mutual friends view with count and load first page
+  try {
+    const resp2 = await friendService.getCommonFriends(userId, 0, 1);
+    const data = resp2?.data || resp2;
+    const total = data?.totalElements || 0;
+
+    console.log("[debug] computed mutual total:", total);
+    mutualFriendsState.totalElements = total;
+    if (mutualTitleCount) mutualTitleCount.textContent = total;
+  } catch (e) {
+    console.error("Error fetching mutual count", e);
+    if (mutualTitleCount) mutualTitleCount.textContent = "0";
+  }
+
+  // Always load initial friends page
+  // Load default friends list
+  try {
+    await loadUserFriends();
+  } catch (e) {
+    console.error("Error in initial load:", e);
+  }
+
+  // Infinite scroll for mutual friends
+  const mutualContainer_scrollable = document.getElementById("mutual-friends-container");
+  if (mutualContainer_scrollable) {
+    mutualContainer_scrollable.addEventListener("scroll", async () => {
+      // Check if user scrolled near the bottom
+      const { scrollTop, scrollHeight, clientHeight } = mutualContainer_scrollable;
+      if (scrollHeight - scrollTop - clientHeight < 200) {
+        // Load more friends
+        if (mutualFriendsState.hasMore && !mutualFriendsState.isLoading) {
+          await loadMutualFriends(mutualFriendsState.currentPage);
+        }
+      }
+    });
+  }
 
   if (friendActionBtn) {
     // Clone to remove old event listeners and prevent duplicates
-    const newFriendActionBtn = friendActionBtn.cloneNode(true);
-    friendActionBtn.parentNode.replaceChild(newFriendActionBtn, friendActionBtn);
+    if (friendActionBtn.parentNode) {
+      const newFriendActionBtn = friendActionBtn.cloneNode(true);
+      friendActionBtn.parentNode.replaceChild(newFriendActionBtn, friendActionBtn);
 
-    newFriendActionBtn.addEventListener("click", async () => {
-      const action = newFriendActionBtn.textContent.trim();
+      newFriendActionBtn.addEventListener("click", async () => {
+        const action = newFriendActionBtn.textContent.trim();
 
-      if (action.startsWith("Bạn bè")) {
-        friendsDropdown?.classList.toggle("hidden");
-        return;
-      }
-      let success = false;
-
-      newFriendActionBtn.disabled = true;
-      showLoading();
-
-      if (action === "Kết bạn") {
-        success = await userController.sendFriendRequest(userId);
-        if (success) {
-          newFriendActionBtn.textContent = "Hủy lời mời";
-          newFriendActionBtn.className =
-            "px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
-        }
-      } else if (action === "Hủy lời mời") {
-        const isOk = await showConfirm({
-          title: "Hủy lời mời",
-          message: "Bạn có chắc muốn hủy lời mời kết bạn không?",
-          confirmText: "Xác nhận",
-          cancelText: "Hủy",
-        });
-        if (!isOk) {
-          newFriendActionBtn.disabled = false;
+        if (action.startsWith("Bạn bè")) {
+          friendsDropdown?.classList.toggle("hidden");
           return;
         }
-        success = await userController.cancelFriendRequest(userId);
-        if (success) {
-          newFriendActionBtn.textContent = "Kết bạn";
-          newFriendActionBtn.className =
-            "px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
-        }
-      } else if (action === "Xác nhận") {
-        // success = await userController.acceptFriendRequest(userId);
-        if (success) {
-          newFriendActionBtn.textContent = "Bạn bè";
-          newFriendActionBtn.className =
-            "px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
-          const rejectBtn = document.getElementById("friendRejectBtn");
-          if (rejectBtn) {
-            rejectBtn.style.display = "none";
+
+        let success = false;
+
+        newFriendActionBtn.disabled = true;
+        showLoading();
+
+        if (action === "Kết bạn") {
+          success = await userController.sendFriendRequest(userId);
+          if (success) {
+            newFriendActionBtn.textContent = "Hủy lời mời";
+            newFriendActionBtn.className =
+              "px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
+          }
+
+        } else if (action === "Hủy lời mời") {
+          const isOk = await showConfirm({
+            title: "Hủy lời mời",
+            message: "Bạn có chắc muốn hủy lời mời kết bạn không?",
+            confirmText: "Xác nhận",
+            cancelText: "Hủy",
+          });
+
+          if (isOk) {
+            success = await userController.cancelFriendRequest(userId);
+            if (success) {
+              newFriendActionBtn.textContent = "Kết bạn";
+              newFriendActionBtn.className =
+                "px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
+            }
+          }
+
+        } else if (action === "Xác nhận") {
+          success = await userController.acceptFriendRequest(userId);
+          if (success) {
+            newFriendActionBtn.textContent = "Bạn bè ▾";
+            newFriendActionBtn.className =
+              "px-6 py-2 bg-sky-400 hover:bg-sky-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
+
+            const rejectBtn = document.getElementById("friendRejectBtn");
+            if (rejectBtn) rejectBtn.remove();
           }
         }
-      }
 
-      newFriendActionBtn.disabled = false;
-      hideLoading();
-    });
+        newFriendActionBtn.disabled = false;
+        hideLoading();
+      });
+    }
   }
 
   if (friendRejectBtn) {
@@ -488,37 +771,52 @@ export const initUserProfilePageEvents = async (userId) => {
   }
 
   // Tab switching functionality
-  tabBtns.forEach((btn) => {
-    // Clone to remove old event listeners and prevent duplicates
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
+  // Tab switching functionality
+tabBtns.forEach((btn) => {
+  btn.addEventListener("click", async () => {
 
-    newBtn.addEventListener("click", () => {
-      const tabName = newBtn.getAttribute("data-tab");
+    const tabName = btn.getAttribute("data-tab");
 
-      // Remove active class from all buttons and contents
-      document.querySelectorAll(".tab-btn").forEach((b) => {
-        b.classList.remove("text-blue-600", "border-b-2", "border-blue-600");
-        b.classList.add("text-gray-600", "hover:text-gray-900");
-      });
-
-      document.querySelectorAll(".tab-content").forEach((content) => {
-        content.classList.remove("active");
-        content.style.display = "none";
-      });
-
-      // Add active class to clicked button and corresponding content
-      newBtn.classList.remove("text-gray-600", "hover:text-gray-900");
-      newBtn.classList.add("text-blue-600", "border-b-2", "border-blue-600");
-
-      const tabContent = document.getElementById(tabName + "-tab");
-      if (tabContent) {
-        tabContent.classList.add("active");
-        tabContent.style.display = "block";
-      }
+    // Remove active class from all buttons
+    document.querySelectorAll(".tab-btn").forEach((b) => {
+      b.classList.remove("text-blue-600", "border-b-2", "border-blue-600");
+      b.classList.add("text-gray-600", "hover:text-gray-900");
     });
-  });
 
+    // Hide all tab contents
+    document.querySelectorAll(".tab-content").forEach((content) => {
+      content.classList.remove("active");
+      content.style.display = "none";
+    });
+
+    // Activate clicked button
+    btn.classList.remove("text-gray-600", "hover:text-gray-900");
+    btn.classList.add("text-blue-600", "border-b-2", "border-blue-600");
+
+    // Show corresponding tab
+    const tabContent = document.getElementById(tabName + "-tab");
+    if (tabContent) {
+      tabContent.classList.add("active");
+      tabContent.style.display = "block";
+    }
+  });
+});
+
+  if (friendsTabBtn) {
+  friendsTabBtn.addEventListener("click", async () => {
+    friendsTabBtn.classList.add("bg-blue-500");
+    mutualTabBtn?.classList.remove("bg-blue-500");
+    await loadUserFriends();
+  });
+}
+
+if (mutualTabBtn) {
+  mutualTabBtn.addEventListener("click", async () => {
+    mutualTabBtn.classList.add("bg-blue-500");
+    friendsTabBtn?.classList.remove("bg-blue-500");
+    await loadMutualFriends(0);
+  });
+}
   // Initialize friend context menu
   const friendMenuBtns = document.querySelectorAll(".friend-menu-btn");
   const contextMenu = document.getElementById("friend-context-menu");
@@ -548,33 +846,39 @@ export const initUserProfilePageEvents = async (userId) => {
   });
 
   if (unfriendFromProfileBtn) {
-    const newUnfriendBtn = unfriendFromProfileBtn.cloneNode(true);
-    unfriendFromProfileBtn.parentNode.replaceChild(newUnfriendBtn, unfriendFromProfileBtn);
-    newUnfriendBtn.addEventListener("click", async () => {
-      const confirmed = await showConfirm({
-        title: "Hủy kết bạn",
-        message: "Bạn có chắc muốn hủy kết bạn không?",
-        confirmText: "Xác nhận",
-        cancelText: "Hủy",
+    // Guard: only replaceChild if parent exists
+    if (unfriendFromProfileBtn.parentNode) {
+      const newUnfriendBtn = unfriendFromProfileBtn.cloneNode(true);
+      unfriendFromProfileBtn.parentNode.replaceChild(newUnfriendBtn, unfriendFromProfileBtn);
+      newUnfriendBtn.addEventListener("click", async () => {
+        const confirmed = await showConfirm({
+          title: "Hủy kết bạn",
+          message: "Bạn có chắc muốn hủy kết bạn không?",
+          confirmText: "Xác nhận",
+          cancelText: "Hủy",
+        });
+
+        if (!confirmed) return;
+
+        const success = await userController.unfriend(userId);
+        if (success) {
+          friendsDropdown.classList.add("hidden");
+
+          const actionBtn = document.getElementById("friendActionBtn");
+          actionBtn.textContent = "Kết bạn";
+          actionBtn.className =
+            "px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
+        }
       });
-
-      if (!confirmed) return;
-
-      const success = await userController.unfriend(userId);
-      if (success) {
-        friendsDropdown.classList.add("hidden");
-
-        const actionBtn = document.getElementById("friendActionBtn");
-        actionBtn.textContent = "Kết bạn";
-        actionBtn.className =
-          "px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex items-center justify-center space-x-2 font-medium";
-      }
-    });
+    }
   }
+
 
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#friendActionBtn") && !e.target.closest("#friendsDropdown")) {
       friendsDropdown?.classList.add("hidden");
     }
   });
+
 };
+

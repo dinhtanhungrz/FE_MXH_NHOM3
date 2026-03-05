@@ -226,6 +226,24 @@ export const unfriend = async (userId) => {
   }
 };
 
+/**
+ * Get friend list for a user
+ * @param {string|number} userId
+ * @param {object} params
+ * @returns {Promise<any>}
+ */
+export const getFriendList = async (userId, params = {}) => {
+  // Adjust endpoint as needed (remove /api if not required)
+  try {
+    const response = await userService.getFriendList(userId, params)
+    return response;
+  } catch (error) {
+    console.error("Remove friend error:", error);
+    showToast(error.message || "Xóa bạn bè thất bại", "error");
+    return error;
+  }
+};
+
 export default {
   loadCurrentUser,
   loadUserProfile,
@@ -238,6 +256,7 @@ export default {
   sendFriendRequest,
   cancelFriendRequest,
   unfriend,
+  getFriendList,
   // acceptFriendRequest,
   // rejectFriendRequest,
   // getFriendStatus,

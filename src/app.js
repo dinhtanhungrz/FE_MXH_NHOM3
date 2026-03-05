@@ -2,9 +2,12 @@ import { router } from "./core/router/router.js";
 import { authState } from "./state/authState.js";
 import AdminPage from "./views/pages/admin/AdminPage.js";
 import AdminUsersPage from "./views/pages/admin/AdminUsersPage.js";
+import { FriendsPage } from "./views/pages/user/FriendsPage.js";
+
 
 // Import pages
 import { HomePage } from "./views/pages/user/HomePage.js";
+import { NewFeeds } from "./views/pages/user/NewFeeds.js";
 import { LoginPage } from "./views/pages/user/LoginPage.js";
 import { ProfilePage } from "./views/pages/user/ProfilePage.js";
 import { RegisterPage } from "./views/pages/user/RegisterPage.js";
@@ -21,6 +24,12 @@ function registerRoutes() {
   // Public routes
   router.addRoute("/", HomePage, {
     title: "Trang chủ - Social Network",
+    requiresAuth: false,
+  });
+
+  
+  router.addRoute("/newfeeds", NewFeeds, {
+    title: "Dòng thời gian - Social Network",
     requiresAuth: false,
   });
 
@@ -65,23 +74,12 @@ function registerRoutes() {
   });
 
   // Placeholder routes (sẵn sàng mở rộng)
-  router.addRoute(
-    "/friends",
-    async () => {
-      return `
-            <div class="min-h-screen flex items-center justify-center">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Bạn bè</h1>
-                    <p class="text-gray-600">Tính năng đang phát triển...</p>
-                </div>
-            </div>
-        `;
-    },
-    {
-      title: "Bạn bè - Social Network",
-      requiresAuth: true,
-    },
-  );
+  router.addRoute("/friends", async (params) => {
+  return await FriendsPage(params);
+}, {
+  title: "Bạn bè - Social Network",
+  requiresAuth: true,
+});
 
   router.addRoute(
     "/messages",
@@ -186,6 +184,18 @@ function initApp() {
 
   // Initialize router (start listening to hash changes)
   router.init();
+  // click user link
+  document.addEventListener("click", (e) => {
+    const userLink = e.target.closest(".user-link");
+    if(!userLink) return;
+
+    const userId = userLink.dataset.userId;
+    if(userId) {
+      router.navigate(`/user-profile/${userId}`);
+    }
+    window.location.hash = `#/user-profile/${userId}`;
+  });
+
 
   console.log("✓ App initialized successfully");
   console.log("Current auth state:", {

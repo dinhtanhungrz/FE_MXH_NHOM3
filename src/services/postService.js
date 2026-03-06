@@ -33,12 +33,18 @@ export const createPost = async (content, visibility, images) => {
   return response.data;
 };
 
-export const getProfilePosts = async (page, limit) => {
+export const getProfilePosts = async () => {
   const response = await apiClient.get(APP_CONFIG.API_ENDPOINTS.POST.PROFILE);
   return response.data;
+};
+
+export const getUserPosts = async (userId, params = {}) => {
+  const response = await apiClient.get(APP_CONFIG.API_ENDPOINTS.POST.USER + userId, { params });
+    return response;
 };
 
 export default {
   createPost,
   getProfilePosts,
+  getUserPosts,
 };

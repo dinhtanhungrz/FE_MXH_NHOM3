@@ -38,9 +38,9 @@ export const createNewPost = async (content, visibility, images) => {
   }
 };
 
-export const getProfilePosts = async (page = 0, limit = 5) => {
+export const getProfilePosts = async () => {
   try {
-    const posts = await postService.getProfilePosts(page, limit);
+    const posts = await postService.getProfilePosts();
     return posts;
   } catch (error) {
     console.error("Get profile posts error:", error);
@@ -49,7 +49,19 @@ export const getProfilePosts = async (page = 0, limit = 5) => {
   }
 };
 
+export const getUserStatuses = async (userId) => {
+  try {
+    const posts = await postService.getUserPosts(userId);
+    return posts;
+  } catch (error) {
+    console.error("Get user posts error:", error);
+    showToast(error.message || "Lấy bài viết thất bại", "error");
+    return [];
+  }
+};
+
 export default {
   createNewPost,
   getProfilePosts,
+  getUserStatuses,
 };

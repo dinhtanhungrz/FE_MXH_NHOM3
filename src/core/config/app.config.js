@@ -21,6 +21,8 @@ export const APP_CONFIG = {
       BLOCK: "/users/block",
       FRIEND_REQUEST: "/users/friend-request/", // + userId
       CANCEL_REQUEST: "/users/cancel-request/", // + userId
+      ACCEPT_REQUEST: "/users/friend-request/accept/", // + userId
+      REJECT_REQUEST: "/users/friend-request/reject/", // + userId
       UNFRIEND: "/users/unfriend/", // + userId
     },
 
@@ -32,6 +34,11 @@ export const APP_CONFIG = {
     POST: {
       BASE: "/statuses",
       PROFILE: "/statuses/profile",
+      USER: "/statuses/user/", // + userId
+    },
+    COMMENT: {
+      BASE: "/comments",
+      STATUS: "/comments/status/", // + statusId
     },
   },
 

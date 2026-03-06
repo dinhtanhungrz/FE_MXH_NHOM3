@@ -9,6 +9,7 @@ import {
 } from "../../../core/utils/helpers.js";
 import postController from "../../../controllers/postController.js";
 import authState from "../../../state/authState.js";
+import { renderPostCard, setupPostEventHandlers } from "../../components/PostCard.js";
 
 /**
  * Profile Page
@@ -342,7 +343,10 @@ export const ProfilePage = async () => {
   // Thiết lập event listeners sau khi DOM được render
   setTimeout(() => {
     setupEditProfileModal(user);
-    setupPostActions();
+    const postsList = document.getElementById("postsList");
+    if (postsList) {
+        setupPostEventHandlers(postsList);
+    }
     initializeCreatePost();
   }, 100);
 
@@ -355,7 +359,6 @@ export const ProfilePage = async () => {
  * @returns {string} HTML string of rendered posts
  */
 const renderPosts = (posts) => {
-  console.log("Rendering posts:", posts);
   if (!posts || posts.length === 0) {
     return `
       <div class="text-center py-12 text-gray-500">
@@ -369,145 +372,6 @@ const renderPosts = (posts) => {
   }
 
   return posts.map((post) => renderPostCard(post)).join("");
-};
-
-/**
- * Render Single Post Card
- * @param {Object} post - Post object
- * @returns {string} HTML string of post card
- */
-const renderPostCard = (post) => {
-  const {
-    id,
-    content,
-    createdAt,
-    imageUrls = [],
-    likesCount = 0,
-    commentsCount = 0,
-    visibility = "PUBLIC",
-    updatedAt,
-    active,
-    user,
-  } = post;
-
-  // Get current user as fallback for user info
-  const currentUser = authState.getUser();
-  const postUser = user || currentUser;
-
-  // Format date
-  const formattedDate = formatRelativeTime(createdAt);
-
-  // Visibility badge color
-  const visibilityColor =
-    {
-      PUBLIC: "bg-green-100 text-green-800",
-      FRIENDS_ONLY: "bg-blue-100 text-blue-800",
-      PRIVATE: "bg-red-100 text-red-800",
-    }[visibility] || "bg-gray-100 text-gray-800";
-
-  const visibilityLabel =
-    {
-      PUBLIC: "Công khai",
-      FRIENDS_ONLY: "Bạn bè",
-      PRIVATE: "Chỉ mình tôi",
-    }[visibility] || visibility;
-
-  // Render images
-  const imagesHtml =
-    imageUrls && imageUrls.length > 0
-      ? `
-      <div class="mt-4 grid gap-2 ${imageUrls.length === 1 ? "grid-cols-1" : imageUrls.length === 2 ? "grid-cols-2" : "grid-cols-3"} rounded-lg overflow-hidden">
-        ${imageUrls
-          .slice(0, 3)
-          .map(
-            (img, idx) => `
-          <div class="relative bg-gray-200 aspect-square overflow-hidden rounded-lg group cursor-pointer">
-            ${
-              img && typeof img === "object" && img.url
-                ? `<img src="${img.url}" alt="Post image ${idx + 1}" class="w-full h-full object-cover group-hover:opacity-90 transition" />`
-                : `<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`
-            }
-          </div>
-        `,
-          )
-          .join("")}
-        ${imageUrls.length > 3 ? `<div class="relative bg-gray-200 aspect-square rounded-lg flex items-center justify-center text-center"><div><p class="text-lg font-bold text-gray-600">+${imageUrls.length - 3}</p><p class="text-xs text-gray-500">ảnh khác</p></div></div>` : ""}
-      </div>
-    `
-      : "";
-
-  return `
-    <article class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow" data-post-id="${id}">
-      <!-- Post Header -->
-      <div class="p-4 border-b border-gray-100">
-        <div class="flex items-start justify-between">
-          <div class="flex items-start gap-3 flex-1">
-            <img 
-              src="${postUser?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(postUser?.username || "User")}&background=3b82f6&color=fff`}"
-              alt="${postUser?.username || "User"}"
-              class="w-10 h-10 rounded-full object-cover"
-            />
-            <div class="flex-1">
-              <div class="flex items-center gap-2">
-                <h3 class="font-semibold text-gray-900 text-sm">${postUser?.fullName || postUser?.username || "User"}</h3>
-                <span class="text-gray-500 text-sm">·</span>
-                <time class="text-gray-500 text-sm" title="${createdAt}">${formattedDate}</time>
-              </div>
-              <div class="flex items-center gap-2 mt-1">
-                <span class="inline-block px-2 py-0.5 text-xs font-medium rounded ${visibilityColor}">
-                  ${visibilityLabel}
-                </span>
-                ${updatedAt ? `<span class="text-xs text-gray-400">(Đã chỉnh sửa)</span>` : ""}
-              </div>
-            </div>
-          </div>
-          <button class="text-gray-400 hover:text-gray-600 transition p-2 hover:bg-gray-100 rounded-full">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Post Content -->
-      <div class="px-4 py-3">
-        <p class="text-gray-900 text-sm leading-normal whitespace-pre-wrap">${content}</p>
-        ${imagesHtml}
-      </div>
-
-      <!-- Post Stats -->
-      <div class="px-4 py-2 border-t border-gray-100 border-b flex justify-between text-xs text-gray-500">
-        <button class="hover:text-blue-600 transition flex items-center gap-1">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
-          </svg>
-          <span>${likesCount}</span>
-        </button>
-        <button class="hover:text-blue-600 transition flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2l-4 4z"></path>
-          </svg>
-          <span>${commentsCount}</span>
-        </button>
-      </div>
-
-      <!-- Post Actions -->
-      <div class="px-4 py-2 flex items-center justify-between text-sm">
-        <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m0 0l-2-1m2 1v2.5M14 4l-2 1m0 0l-2-1m2 1v2.5"></path>
-          </svg>
-          <span>Thích</span>
-        </button>
-        <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span>Bình luận</span>
-        </button>
-      </div>
-    </article>
-  `;
 };
 
 /**
@@ -688,57 +552,7 @@ const setupEditProfileModal = () => {
  * Setup Post Actions
  * Initialize event listeners for post interactions
  */
-const setupPostActions = () => {
-  const posts = document.querySelectorAll("article[data-post-id]");
-
-  posts.forEach((postElement) => {
-    const postId = postElement.getAttribute("data-post-id");
-
-    // Get all action buttons from the last div (Post Actions section)
-    const actionButtons = postElement.querySelectorAll("div:last-child > button");
-
-    // Like button (first action button)
-    if (actionButtons[0]) {
-      actionButtons[0].addEventListener("click", async () => {
-        try {
-          showToast("Chức năng này đang được phát triển", "info");
-        } catch (error) {
-          showToast(error.message || "Lỗi khi thích bài viết", "error");
-        }
-      });
-    }
-
-    // Comment button (second action button)
-    if (actionButtons[1]) {
-      actionButtons[1].addEventListener("click", () => {
-        try {
-          showToast("Chức năng bình luận đang được phát triển", "info");
-        } catch (error) {
-          showToast(error.message || "Lỗi khi bình luận", "error");
-        }
-      });
-    }
-
-    // Share button (third action button)
-    if (actionButtons[2]) {
-      actionButtons[2].addEventListener("click", () => {
-        try {
-          showToast("Chức năng chia sẻ đang được phát triển", "info");
-        } catch (error) {
-          showToast(error.message || "Lỗi khi chia sẻ bài viết", "error");
-        }
-      });
-    }
-
-    // More options button (three dots in header)
-    const moreBtn = postElement.querySelector("div:first-child button:last-child");
-    if (moreBtn) {
-      moreBtn.addEventListener("click", () => {
-        showToast("Chức năng này đang được phát triển", "info");
-      });
-    }
-  });
-};
+// setupPostActions removed as it's replaced by setupPostEventHandlers from PostCard.js
 
 /**
  * Initialize Create Post Modal

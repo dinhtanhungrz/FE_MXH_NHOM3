@@ -175,39 +175,39 @@ export const cancelFriendRequest = async (userId) => {
   }
 };
 
-// /**
-//  * Accept friend request
-//  * @param {string} userId - User ID
-//  * @returns {Promise<boolean>} Success status
-//  */
-// export const acceptFriendRequest = async (userId) => {
-//   try {
-//     await userService.acceptFriendRequest(userId);
-//     showToast("Đã chấp nhận lời mời kết bạn", "success");
-//     return true;
-//   } catch (error) {
-//     console.error("Accept friend request error:", error);
-//     showToast(error.message || "Chấp nhận lời mời thất bại", "error");
-//     return false;
-//   }
-// };
+/**
+ * Accept friend request
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Success status
+ */
+export const acceptFriendRequest = async (userId) => {
+  try {
+    await userService.acceptFriendRequest(userId);
+    showToast("Đã chấp nhận lời mời kết bạn", "success");
+    return true;
+  } catch (error) {
+    console.error("Accept friend request error:", error);
+    showToast(error.message || "Chấp nhận lời mời thất bại", "error");
+    return false;
+  }
+};
 
-// /**
-//  * Reject friend request
-//  * @param {string} userId - User ID
-//  * @returns {Promise<boolean>} Success status
-//  */
-// export const rejectFriendRequest = async (userId) => {
-//   try {
-//     await userService.rejectFriendRequest(userId);
-//     showToast("Đã từ chối lời mời kết bạn", "success");
-//     return true;
-//   } catch (error) {
-//     console.error("Reject friend request error:", error);
-//     showToast(error.message || "Từ chối lời mời thất bại", "error");
-//     return false;
-//   }
-// };
+/**
+ * Reject friend request
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Success status
+ */
+export const rejectFriendRequest = async (userId) => {
+  try {
+    await userService.rejectFriendRequest(userId);
+    showToast("Đã từ chối lời mời kết bạn", "success");
+    return true;
+  } catch (error) {
+    console.error("Reject friend request error:", error);
+    showToast(error.message || "Từ chối lời mời thất bại", "error");
+    return false;
+  }
+};
 
 /**
  * Remove friend
@@ -257,7 +257,6 @@ export default {
   cancelFriendRequest,
   unfriend,
   getFriendList,
-  // acceptFriendRequest,
-  // rejectFriendRequest,
-  // getFriendStatus,
+  acceptFriendRequest,
+  rejectFriendRequest,
 };

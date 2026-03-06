@@ -105,25 +105,25 @@ export const cancelFriendRequest = async (userId) => {
   return response;
 };
 
-// /**
-//  * Accept friend request
-//  * @param {string} userId - User ID
-//  * @returns {Promise<Object>}
-//  */
-// export const acceptFriendRequest = async (userId) => {
-//   const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.ACCEPT, { userId });
-//   return response;
-// };
+/**
+ * Accept friend request
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>}
+ */
+export const acceptFriendRequest = async (userId) => {
+  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.USER.ACCEPT_REQUEST + userId);
+  return response;
+};
 
-// /**
-//  * Reject friend request
-//  * @param {string} userId - User ID
-//  * @returns {Promise<Object>}
-//  */
-// export const rejectFriendRequest = async (userId) => {
-//   const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.FRIEND.REJECT, { userId });
-//   return response;
-// };
+/**
+ * Reject friend request
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>}
+ */
+export const rejectFriendRequest = async (userId) => {
+  const response = await apiClient.delete(APP_CONFIG.API_ENDPOINTS.USER.REJECT_REQUEST + userId);
+  return response;
+};
 
 /**
  * unfriend

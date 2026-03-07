@@ -160,6 +160,16 @@ export const renderModal = (id, title, content) => {
     `;
 };
 
+
+/**
+    xử lý click tên user cho mục 14. Là người dùng, tôi muốn xem tường của bạn bè thông qua tên hiển thị
+**/
+
+export const renderUserLink = (user, extraClasses = "") => {
+    return `<span class ="user-link cursor-pointer font-semibold text-blue-600 hover:underline ${extraClasses}"
+        data-user-id="${user.id}">${user.username || user.name || "User"}</span>`;
+}
+
 export default {
     renderLoading,
     renderError,
@@ -170,11 +180,3 @@ export default {
     renderBadge,
     renderModal,
 };
-/**
-    xử lý click tên user cho mục 14. Là người dùng, tôi muốn xem tường của bạn bè thông qua tên hiển thị
-**/
-
-export const renderUserLink = (user, extraClasses = "") => {
-    return `<span class ="user-link cursor-pointer font-semibold text-blue-600 hover:underline ${extraClasses}"
-        data-user-id="${user.id}">${user.username || user.name || "User"}</span>`;
-}

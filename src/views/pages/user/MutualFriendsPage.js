@@ -5,21 +5,24 @@ let loading = false;
 let last = false;
 let userId = null;
 
-export async function FriendsPage() {
   // Fix: get userId from hash for hash router (e.g. #/friends/2)
-  const hashParts = window.location.hash.split("/");
-  userId = hashParts[2] || null;
+  export async function MutualFriendsPage(params) {
 
-  // Reset state on navigation
+  userId = params.id;
+
   page = 0;
   loading = false;
   last = false;
 
-  setTimeout(() => init(), 0);
+  setTimeout(init,0);
+  
+    
+
+  // Render initial HTML
 
   return `
     <div class="max-w-4xl mx-auto p-4">
-      <h1 class="text-2xl font-bold mb-4">Bạn chung</h1>
+      <h1 class="text-2xl font-bold mb-4">Bạn bè</h1>
 
       <div id="mutualList" class="grid grid-cols-2 gap-4"></div>
 
@@ -31,14 +34,7 @@ export async function FriendsPage() {
 }
 
 async function init() {
-  await load();
 
-  window.addEventListener("scroll", async () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
-      await load();
-    }
-  });
-}
   const container = document.getElementById("mutualList");
 if (container) {
     container.addEventListener("click", (e) => {
@@ -51,6 +47,16 @@ if (container) {
       window.location.hash = `#/user-profile/${id}`;
     });
   }
+  
+  await load();
+
+  window.addEventListener("scroll", async () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+      await load();
+    }
+  });
+}
+  
 async function load() {
   if (loading || last) return;
 
@@ -59,9 +65,10 @@ async function load() {
 
   const res = await getCommonFriends(userId, page);
 
-  render(res.content);
+const data = res.data; // lấy data từ axios
+  render(data.content);
 
-  last = res.last;
+  last = data.last;
   page++;
 
   loading = false;
@@ -70,7 +77,7 @@ async function load() {
 
 function render(users) {
   const container = document.getElementById("mutualList");
-
+  if (!container) return;
   users.forEach(u => {
     const avatar = u.avatarUrl || u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username || "User")}&size=80&background=3b82f6&color=fff`;
     container.insertAdjacentHTML("beforeend", `

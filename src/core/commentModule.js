@@ -276,3 +276,54 @@ export default {
     renderCommentItem,
     handleEvents
 };
+const renderComment = (comment, postPrivacy, container) => {
+    if (postPrivacy !== 'PUBLIC' && postPrivacy !== 'Công khai') {
+        // Hide like features for non-public
+        return;
+    }
+
+    const isLiked = comment.currentUserLiked || false;
+    const likeCount = comment.likeCount || 0;
+
+    const commentHtml = `
+    <div class="comment-item">
+      <div class="comment-content">${comment.content}</div>
+      <div class="comment-actions" style="display: flex; align-items: center; margin-top: 8px;">
+        <button class="like-btn ${isLiked ? 'liked' : ''}" 
+                data-comment-id="${comment.id}"
+                style="background: none; border: none; cursor: pointer; margin-right: 8px; color: ${isLiked ? '#007bff' : '#6c757d'}; font-size: 14px; font-weight: ${isLiked ? 'bold' : 'normal'};">
+          ${isLiked ? 'Unlike' : 'Like'}
+        </button>
+        <span class="like-count" style="color: #6c757d; font-size: 14px;">${likeCount} likes</span>
+      </div>
+      <small class="comment-time">${formatRelativeTime(comment.createdAt)}</small>
+    </div>
+  `;
+    container.insertAdjacentHTML('beforeend', commentHtml);
+
+    // Attach event listener
+    const likeBtn = container.querySelector(`[data-comment-id="${comment.id}"]`);
+    likeBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const commentId = comment.id;
+        try {
+            const result = await commentService.toggleCommentLike(commentId);
+
+            // Update UI
+            likeBtn.textContent = result.isLiked ? 'Unlike' : 'Like';
+            likeBtn.className = `like-btn ${result.isLiked ? 'liked' : ''}`;
+            likeBtn.style.color = result.isLiked ? '#007bff' : '#6c757d';
+            likeBtn.style.fontWeight = result.isLiked ? 'bold' : 'normal';
+
+            const countEl = likeBtn.nextElementSibling;
+            countEl.textContent = `${result.likeCount} likes`;
+
+            // Update comment data if stored in state
+            comment.currentUserLiked = result.isLiked;
+            comment.likeCount = result.likeCount;
+        } catch (error) {
+            console.error('Toggle like failed:', error);
+        }
+    });
+};
+

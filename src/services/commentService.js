@@ -28,6 +28,12 @@ export const updateComment = async (id, content) => {
 
 export default {
   getComments,
-  postComment,
-  updateComment
+  updateComment,
+  postComment: async (postId, content) => {
+  },
+  toggleCommentLike: async (commentId) => {
+    const response = await apiClient.post(`${APP_CONFIG.API_BASE}/comments/${commentId}/like`);
+    return response.data.data; // {likeCount, isLiked}
+  }
 };
+

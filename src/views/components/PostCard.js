@@ -1,7 +1,7 @@
 import { authState } from "../../state/authState.js";
 import { formatRelativeTime } from "../../core/utils/helpers.js";
 import commentModule from "../../core/commentModule.js";
-
+import { likeStatus, unlikeStatus } from "../../services/likeService.js";
 /**
  * PostCard Component
  * Renders a post card with all interactions
@@ -9,16 +9,17 @@ import commentModule from "../../core/commentModule.js";
 
 export const renderPostCard = (post) => {
   const {
-    id,
-    content,
-    createdAt,
-    imageUrls = [],
-    likesCount = 0,
-    commentsCount = 0,
-    visibility = "PUBLIC",
-    updatedAt,
-    user,
-  } = post;
+  id,
+  content,
+  createdAt,
+  imageUrls = [],
+  likeCount =0  ,
+  commentsCount = 0,
+  liked = false,
+  visibility = "PUBLIC",
+  updatedAt,
+  user,
+} = post;
 
   const currentUser = authState.getUser();
   const postUser = user || currentUser;
@@ -97,7 +98,7 @@ export const renderPostCard = (post) => {
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
               </svg>
-              <span>${likesCount}</span>
+              <span>${likeCount}</span>
             </button>
             <button class="hover:text-blue-600 transition flex items-center gap-1 btn-comment-stat">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,12 +111,23 @@ export const renderPostCard = (post) => {
 
       <!-- Post Actions -->
       <div class="px-4 py-1 flex items-center justify-between text-sm border-b border-gray-100">
-        <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2 btn-like">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
-          </svg>
-          <span class="font-medium">Thích</span>
-        </button>
+        <button 
+            class="flex-1 py-2 text-center transition rounded flex items-center justify-center gap-2 btn-like ${liked ? "text-blue-600" : "text-gray-600"}"
+            data-liked="${liked}"
+        >
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017
+                c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095
+                c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7
+                20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5">
+          </path>
+        </svg>
+
+<span class="font-medium">Thích</span>
+
+</button>          
         <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2 btn-comment">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -140,7 +152,7 @@ export const renderPostCard = (post) => {
 
 export const setupPostEventHandlers = (container) => {
     container.querySelectorAll('article[data-post-id]').forEach(postElement => {
-        const postId = postElement.dataset.postId;
+        const postId = Number(postElement.dataset.postId);
         
         // Comment Action
         const commentBtn = postElement.querySelector('.btn-comment');
@@ -160,7 +172,48 @@ export const setupPostEventHandlers = (container) => {
         }
 
         // Like/Share dummy handlers
-        postElement.querySelector('.btn-like')?.addEventListener('click', () => alert('Tính năng thích đang được phát triển'));
+        const likeBtn = postElement.querySelector('.btn-like');
+
+if (likeBtn) {
+
+likeBtn.addEventListener("click", async () => {
+
+const liked = likeBtn.dataset.liked === "true";
+const likeCountEl = postElement.querySelector(".btn-like-stat span");
+
+try {
+
+if (liked) {
+
+await unlikeStatus(postId);
+
+likeBtn.dataset.liked = "false";
+likeBtn.classList.remove("text-blue-600");
+likeBtn.classList.add("text-gray-600");
+
+likeCountEl.textContent = Number(likeCountEl.textContent) - 1;
+
+} else {
+
+await likeStatus(postId);
+
+likeBtn.dataset.liked = "true";
+likeBtn.classList.add("text-blue-600");
+likeBtn.classList.remove("text-gray-600");
+
+likeCountEl.textContent = Number(likeCountEl.textContent) + 1;
+
+}
+
+} catch (error) {
+
+console.error(error);
+alert("Like thất bại");
+
+}
+
+});
+}
         postElement.querySelector('.btn-share')?.addEventListener('click', () => alert('Tính năng chia sẻ đang được phát triển'));
         postElement.querySelector('.btn-more-options')?.addEventListener('click', () => alert('Tính năng đang được phát triển'));
     });

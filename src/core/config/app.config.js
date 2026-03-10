@@ -40,6 +40,11 @@ export const APP_CONFIG = {
       BASE: "/comments",
       STATUS: "/comments/status/", // + statusId
     },
+    // Like endpoints
+    LIKE: {
+      BASE: "/status-like",
+      STATUS: "/status-like/:statusId"
+    },
   },
 
   // Storage keys

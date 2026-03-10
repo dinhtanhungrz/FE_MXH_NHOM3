@@ -1,5 +1,4 @@
 import { APP_CONFIG } from '../config/app.config.js';
-
 /**
  * API Endpoints Helper
  * Cung cấp các hàm tiện ích để build API URLs
@@ -67,12 +66,18 @@ export const commentEndpoints = {
     delete: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.DELETE, { id: commentId }),
 };
 
+
 /**
  * Like endpoints (sẵn sàng mở rộng)
  */
 export const likeEndpoints = {
-    like: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.LIKE, { postId }),
-    unlike: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.UNLIKE, { postId }),
+
+    like: (statusId) =>
+        replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.STATUS,{statusId}),
+    unlike: (statusId) =>
+        replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.STATUS,{statusId}),
+    getStatus: (statusId) =>
+        replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.STATUS, { statusId }),
 };
 
 /**

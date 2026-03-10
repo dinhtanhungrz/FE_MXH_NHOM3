@@ -9,48 +9,58 @@ import { likeStatus, unlikeStatus } from "../../services/likeService.js";
 
 export const renderPostCard = (post) => {
   const {
-  id,
-  content,
-  createdAt,
-  imageUrls = [],
-  likeCount =0  ,
-  commentsCount = 0,
-  liked = false,
-  visibility = "PUBLIC",
-  updatedAt,
-  user,
-} = post;
+    id,
+    content,
+    createdAt,
+    imageUrls = [],
+    likesCount = 0,
+    commentsCount = 0,
+    liked = false,
+    visibility = "PUBLIC",
+    updatedAt,
+    user,
+  } = post;
 
   const currentUser = authState.getUser();
   const postUser = user || currentUser;
   const formattedDate = formatRelativeTime(createdAt);
 
-  const visibilityColor = {
-    PUBLIC: "bg-green-100 text-green-800",
-    FRIENDS_ONLY: "bg-blue-100 text-blue-800",
-    PRIVATE: "bg-red-100 text-red-800",
-  }[visibility] || "bg-gray-100 text-gray-800";
+  const visibilityColor =
+    {
+      PUBLIC: "bg-green-100 text-green-800",
+      FRIENDS_ONLY: "bg-blue-100 text-blue-800",
+      PRIVATE: "bg-red-100 text-red-800",
+    }[visibility] || "bg-gray-100 text-gray-800";
 
-  const visibilityLabel = {
-    PUBLIC: "Công khai",
-    FRIENDS_ONLY: "Bạn bè",
-    PRIVATE: "Chỉ mình tôi",
-  }[visibility] || visibility;
+  const visibilityLabel =
+    {
+      PUBLIC: "Công khai",
+      FRIENDS_ONLY: "Bạn bè",
+      PRIVATE: "Chỉ mình tôi",
+    }[visibility] || visibility;
 
-  const imagesHtml = imageUrls && imageUrls.length > 0
-    ? `
+  const imagesHtml =
+    imageUrls && imageUrls.length > 0
+      ? `
       <div class="mt-4 grid gap-2 ${imageUrls.length === 1 ? "grid-cols-1" : imageUrls.length === 2 ? "grid-cols-2" : "grid-cols-3"} rounded-lg overflow-hidden">
-        ${imageUrls.slice(0, 3).map((img, idx) => `
+        ${imageUrls
+          .slice(0, 3)
+          .map(
+            (img, idx) => `
           <div class="relative bg-gray-200 aspect-square overflow-hidden rounded-lg group cursor-pointer">
-            ${img && typeof img === "object" && img.url
-              ? `<img src="${img.url}" alt="Post image ${idx + 1}" class="w-full h-full object-cover group-hover:opacity-90 transition" />`
-              : `<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`
+            ${
+              img && typeof img === "object" && img.url
+                ? `<img src="${img.url}" alt="Post image ${idx + 1}" class="w-full h-full object-cover group-hover:opacity-90 transition" />`
+                : `<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`
             }
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
         ${imageUrls.length > 3 ? `<div class="relative bg-gray-200 aspect-square rounded-lg flex items-center justify-center text-center"><div><p class="text-lg font-bold text-gray-600">+${imageUrls.length - 3}</p><p class="text-xs text-gray-500">ảnh khác</p></div></div>` : ""}
       </div>
-    ` : "";
+    `
+      : "";
 
   return `
     <article class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow" data-post-id="${id}">
@@ -98,7 +108,7 @@ export const renderPostCard = (post) => {
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
               </svg>
-              <span>${likeCount}</span>
+              <span>${likesCount}</span>
             </button>
             <button class="hover:text-blue-600 transition flex items-center gap-1 btn-comment-stat">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,75 +161,68 @@ export const renderPostCard = (post) => {
 };
 
 export const setupPostEventHandlers = (container) => {
-    container.querySelectorAll('article[data-post-id]').forEach(postElement => {
-        const postId = Number(postElement.dataset.postId);
-        
-        // Comment Action
-        const commentBtn = postElement.querySelector('.btn-comment');
-        if (commentBtn) {
-            commentBtn.onclick = () => {
-                const commentSection = postElement.querySelector(`#comment-section-${postId}`);
-                if (commentSection) {
-                    const isHidden = commentSection.classList.contains('hidden');
-                    if (isHidden) {
-                        commentSection.classList.remove('hidden');
-                        commentModule.initCommentSection(commentSection, postId);
-                    } else {
-                        commentSection.classList.add('hidden');
-                    }
-                }
-            };
+  container.querySelectorAll("article[data-post-id]").forEach((postElement) => {
+    const postId = Number(postElement.dataset.postId);
+
+    // Comment Action
+    const commentBtn = postElement.querySelector(".btn-comment");
+    if (commentBtn) {
+      commentBtn.onclick = () => {
+        const commentSection = postElement.querySelector(`#comment-section-${postId}`);
+        if (commentSection) {
+          const isHidden = commentSection.classList.contains("hidden");
+          if (isHidden) {
+            commentSection.classList.remove("hidden");
+            commentModule.initCommentSection(commentSection, postId);
+          } else {
+            commentSection.classList.add("hidden");
+          }
         }
+      };
+    }
 
-        // Like/Share dummy handlers
-        const likeBtn = postElement.querySelector('.btn-like');
+    // Like/Share dummy handlers
+    const likeBtn = postElement.querySelector(".btn-like");
 
-if (likeBtn) {
+    if (likeBtn) {
+      likeBtn.addEventListener("click", async () => {
+        const liked = likeBtn.dataset.liked === "true";
+        const likeCountEl = postElement.querySelector(".btn-like-stat span");
 
-likeBtn.addEventListener("click", async () => {
+        try {
+          if (liked) {
+            await unlikeStatus(postId);
 
-const liked = likeBtn.dataset.liked === "true";
-const likeCountEl = postElement.querySelector(".btn-like-stat span");
+            likeBtn.dataset.liked = "false";
+            likeBtn.classList.remove("text-blue-600");
+            likeBtn.classList.add("text-gray-600");
 
-try {
+            likeCountEl.textContent = Number(likeCountEl.textContent) - 1;
+          } else {
+            await likeStatus(postId);
 
-if (liked) {
+            likeBtn.dataset.liked = "true";
+            likeBtn.classList.add("text-blue-600");
+            likeBtn.classList.remove("text-gray-600");
 
-await unlikeStatus(postId);
-
-likeBtn.dataset.liked = "false";
-likeBtn.classList.remove("text-blue-600");
-likeBtn.classList.add("text-gray-600");
-
-likeCountEl.textContent = Number(likeCountEl.textContent) - 1;
-
-} else {
-
-await likeStatus(postId);
-
-likeBtn.dataset.liked = "true";
-likeBtn.classList.add("text-blue-600");
-likeBtn.classList.remove("text-gray-600");
-
-likeCountEl.textContent = Number(likeCountEl.textContent) + 1;
-
-}
-
-} catch (error) {
-
-console.error(error);
-alert("Like thất bại");
-
-}
-
-});
-}
-        postElement.querySelector('.btn-share')?.addEventListener('click', () => alert('Tính năng chia sẻ đang được phát triển'));
-        postElement.querySelector('.btn-more-options')?.addEventListener('click', () => alert('Tính năng đang được phát triển'));
-    });
+            likeCountEl.textContent = Number(likeCountEl.textContent) + 1;
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Like thất bại");
+        }
+      });
+    }
+    postElement
+      .querySelector(".btn-share")
+      ?.addEventListener("click", () => alert("Tính năng chia sẻ đang được phát triển"));
+    postElement
+      .querySelector(".btn-more-options")
+      ?.addEventListener("click", () => alert("Tính năng đang được phát triển"));
+  });
 };
 
 export default {
-    renderPostCard,
-    setupPostEventHandlers
+  renderPostCard,
+  setupPostEventHandlers,
 };

@@ -345,7 +345,7 @@ export const ProfilePage = async () => {
     setupEditProfileModal(user);
     const postsList = document.getElementById("postsList");
     if (postsList) {
-        setupPostEventHandlers(postsList);
+      setupPostEventHandlers(postsList);
     }
     initializeCreatePost();
   }, 100);
@@ -796,6 +796,7 @@ const initializePostModal = () => {
       await postController.createNewPost(content, visibility, files);
 
       closeModal();
+      refreshStatuses();
     } catch (error) {
       console.error(error);
       alert("Có lỗi xảy ra khi đăng bài");
@@ -804,6 +805,19 @@ const initializePostModal = () => {
       submitBtn.innerText = "Đăng";
     }
   });
+};
+
+const refreshStatuses = async () => {
+  try {
+    const statuses = await postController.getProfilePosts();
+    const postsList = document.getElementById("postsList");
+    if (postsList) {
+      postsList.innerHTML = renderPosts(statuses);
+      setupPostEventHandlers(postsList);
+    }
+  } catch (error) {
+    console.error("Failed to fetch user statuses:", error);
+  }
 };
 
 export default ProfilePage;

@@ -915,9 +915,8 @@ const loadUserPosts = async (user) => {
       `;
       return;
     }
-
     filteredPosts.forEach((post) => {
-      const postHtml = renderPostCard(post);
+      const postHtml = renderPostCard({ ...post, user: user });
       listContainer.insertAdjacentHTML("beforeend", postHtml);
     });
 

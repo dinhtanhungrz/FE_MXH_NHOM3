@@ -2,8 +2,6 @@ import { router } from "./core/router/router.js";
 import { authState } from "./state/authState.js";
 import AdminPage from "./views/pages/admin/AdminPage.js";
 import AdminUsersPage from "./views/pages/admin/AdminUsersPage.js";
-import { FriendsPage } from "./views/pages/user/FriendsPage.js";
-
 
 // Import pages
 import { HomePage } from "./views/pages/user/HomePage.js";
@@ -13,7 +11,8 @@ import { ProfilePage } from "./views/pages/user/ProfilePage.js";
 import { RegisterPage } from "./views/pages/user/RegisterPage.js";
 import SettingsPage from "./views/pages/user/SettingsPage.js";
 import { UserProfilePage, initUserProfilePageEvents } from "./views/pages/user/UserProfilePage.js";
-
+import { FriendsListPage } from "./views/pages/user/FriendsListPage.js";
+import { MutualFriendsPage } from "./views/pages/user/MutualFriendsPage.js";
 /**
  * Application Bootstrap
  * Entry point của ứng dụng
@@ -74,12 +73,23 @@ function registerRoutes() {
   });
 
   // Placeholder routes (sẵn sàng mở rộng)
-  router.addRoute("/friends", async (params) => {
-  return await FriendsPage(params);
-}, {
-  title: "Bạn bè - Social Network",
-  requiresAuth: true,
-});
+
+
+  // danh sách bạn bè
+    router.addRoute("/friends", async(params)=>{
+    return await FriendsListPage(params);
+  },{
+    title:"Danh sách bạn bè",
+    requiresAuth:true
+  });
+
+  // bạn chung 
+  router.addRoute("/mutual-friends/:id", async(params)=>{
+    return await MutualFriendsPage(params);
+  },{
+    title:"Bạn chung",
+    requiresAuth:true
+  });
 
   router.addRoute(
     "/messages",
@@ -193,7 +203,6 @@ function initApp() {
     if(userId) {
       router.navigate(`/user-profile/${userId}`);
     }
-    window.location.hash = `#/user-profile/${userId}`;
   });
 
 

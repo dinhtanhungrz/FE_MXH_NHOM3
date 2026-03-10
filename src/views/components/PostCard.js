@@ -1,7 +1,7 @@
 import { authState } from "../../state/authState.js";
 import { formatRelativeTime } from "../../core/utils/helpers.js";
 import commentModule from "../../core/commentModule.js";
-
+import { likeStatus, unlikeStatus } from "../../services/likeService.js";
 /**
  * PostCard Component
  * Renders a post card with all interactions
@@ -15,6 +15,7 @@ export const renderPostCard = (post) => {
     imageUrls = [],
     likesCount = 0,
     commentsCount = 0,
+    liked = false,
     visibility = "PUBLIC",
     updatedAt,
     user,
@@ -24,32 +25,42 @@ export const renderPostCard = (post) => {
   const postUser = user || currentUser;
   const formattedDate = formatRelativeTime(createdAt);
 
-  const visibilityColor = {
-    PUBLIC: "bg-green-100 text-green-800",
-    FRIENDS_ONLY: "bg-blue-100 text-blue-800",
-    PRIVATE: "bg-red-100 text-red-800",
-  }[visibility] || "bg-gray-100 text-gray-800";
+  const visibilityColor =
+    {
+      PUBLIC: "bg-green-100 text-green-800",
+      FRIENDS_ONLY: "bg-blue-100 text-blue-800",
+      PRIVATE: "bg-red-100 text-red-800",
+    }[visibility] || "bg-gray-100 text-gray-800";
 
-  const visibilityLabel = {
-    PUBLIC: "Công khai",
-    FRIENDS_ONLY: "Bạn bè",
-    PRIVATE: "Chỉ mình tôi",
-  }[visibility] || visibility;
+  const visibilityLabel =
+    {
+      PUBLIC: "Công khai",
+      FRIENDS_ONLY: "Bạn bè",
+      PRIVATE: "Chỉ mình tôi",
+    }[visibility] || visibility;
 
-  const imagesHtml = imageUrls && imageUrls.length > 0
-    ? `
+  const imagesHtml =
+    imageUrls && imageUrls.length > 0
+      ? `
       <div class="mt-4 grid gap-2 ${imageUrls.length === 1 ? "grid-cols-1" : imageUrls.length === 2 ? "grid-cols-2" : "grid-cols-3"} rounded-lg overflow-hidden">
-        ${imageUrls.slice(0, 3).map((img, idx) => `
+        ${imageUrls
+          .slice(0, 3)
+          .map(
+            (img, idx) => `
           <div class="relative bg-gray-200 aspect-square overflow-hidden rounded-lg group cursor-pointer">
-            ${img && typeof img === "object" && img.url
-              ? `<img src="${img.url}" alt="Post image ${idx + 1}" class="w-full h-full object-cover group-hover:opacity-90 transition" />`
-              : `<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`
+            ${
+              img && typeof img === "object" && img.url
+                ? `<img src="${img.url}" alt="Post image ${idx + 1}" class="w-full h-full object-cover group-hover:opacity-90 transition" />`
+                : `<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`
             }
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
         ${imageUrls.length > 3 ? `<div class="relative bg-gray-200 aspect-square rounded-lg flex items-center justify-center text-center"><div><p class="text-lg font-bold text-gray-600">+${imageUrls.length - 3}</p><p class="text-xs text-gray-500">ảnh khác</p></div></div>` : ""}
       </div>
-    ` : "";
+    `
+      : "";
 
   return `
     <article class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow" data-post-id="${id}">
@@ -110,12 +121,23 @@ export const renderPostCard = (post) => {
 
       <!-- Post Actions -->
       <div class="px-4 py-1 flex items-center justify-between text-sm border-b border-gray-100">
-        <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2 btn-like">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
-          </svg>
-          <span class="font-medium">Thích</span>
-        </button>
+        <button 
+            class="flex-1 py-2 text-center transition rounded flex items-center justify-center gap-2 btn-like ${liked ? "text-blue-600" : "text-gray-600"}"
+            data-liked="${liked}"
+        >
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017
+                c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095
+                c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7
+                20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5">
+          </path>
+        </svg>
+
+<span class="font-medium">Thích</span>
+
+</button>          
         <button class="flex-1 py-2 text-center text-gray-600 hover:bg-gray-50 transition rounded flex items-center justify-center gap-2 btn-comment">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -139,34 +161,68 @@ export const renderPostCard = (post) => {
 };
 
 export const setupPostEventHandlers = (container) => {
-    container.querySelectorAll('article[data-post-id]').forEach(postElement => {
-        const postId = postElement.dataset.postId;
-        
-        // Comment Action
-        const commentBtn = postElement.querySelector('.btn-comment');
-        if (commentBtn) {
-            commentBtn.onclick = () => {
-                const commentSection = postElement.querySelector(`#comment-section-${postId}`);
-                if (commentSection) {
-                    const isHidden = commentSection.classList.contains('hidden');
-                    if (isHidden) {
-                        commentSection.classList.remove('hidden');
-                        commentModule.initCommentSection(commentSection, postId);
-                    } else {
-                        commentSection.classList.add('hidden');
-                    }
-                }
-            };
-        }
+  container.querySelectorAll("article[data-post-id]").forEach((postElement) => {
+    const postId = Number(postElement.dataset.postId);
 
-        // Like/Share dummy handlers
-        postElement.querySelector('.btn-like')?.addEventListener('click', () => alert('Tính năng thích đang được phát triển'));
-        postElement.querySelector('.btn-share')?.addEventListener('click', () => alert('Tính năng chia sẻ đang được phát triển'));
-        postElement.querySelector('.btn-more-options')?.addEventListener('click', () => alert('Tính năng đang được phát triển'));
-    });
+    // Comment Action
+    const commentBtn = postElement.querySelector(".btn-comment");
+    if (commentBtn) {
+      commentBtn.onclick = () => {
+        const commentSection = postElement.querySelector(`#comment-section-${postId}`);
+        if (commentSection) {
+          const isHidden = commentSection.classList.contains("hidden");
+          if (isHidden) {
+            commentSection.classList.remove("hidden");
+            commentModule.initCommentSection(commentSection, postId);
+          } else {
+            commentSection.classList.add("hidden");
+          }
+        }
+      };
+    }
+
+    // Like/Share dummy handlers
+    const likeBtn = postElement.querySelector(".btn-like");
+
+    if (likeBtn) {
+      likeBtn.addEventListener("click", async () => {
+        const liked = likeBtn.dataset.liked === "true";
+        const likeCountEl = postElement.querySelector(".btn-like-stat span");
+
+        try {
+          if (liked) {
+            await unlikeStatus(postId);
+
+            likeBtn.dataset.liked = "false";
+            likeBtn.classList.remove("text-blue-600");
+            likeBtn.classList.add("text-gray-600");
+
+            likeCountEl.textContent = Number(likeCountEl.textContent) - 1;
+          } else {
+            await likeStatus(postId);
+
+            likeBtn.dataset.liked = "true";
+            likeBtn.classList.add("text-blue-600");
+            likeBtn.classList.remove("text-gray-600");
+
+            likeCountEl.textContent = Number(likeCountEl.textContent) + 1;
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Like thất bại");
+        }
+      });
+    }
+    postElement
+      .querySelector(".btn-share")
+      ?.addEventListener("click", () => alert("Tính năng chia sẻ đang được phát triển"));
+    postElement
+      .querySelector(".btn-more-options")
+      ?.addEventListener("click", () => alert("Tính năng đang được phát triển"));
+  });
 };
 
 export default {
-    renderPostCard,
-    setupPostEventHandlers
+  renderPostCard,
+  setupPostEventHandlers,
 };

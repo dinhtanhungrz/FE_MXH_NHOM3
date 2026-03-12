@@ -305,6 +305,7 @@ const initializeHomePage = () => {
   });
 };
 
+
 const CreatePostModal = () => {
   const user = authState.getUser();
 

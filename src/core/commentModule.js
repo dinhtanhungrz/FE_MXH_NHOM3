@@ -46,9 +46,17 @@ export const renderCommentItem = (comment) => {
                     ${comment.imageUrl ? `<img src="${comment.imageUrl}" class="rounded-lg mt-2 max-w-full h-auto" alt="comment-image">` : ''}
                 </div>
                 <div class="flex items-center gap-4 mt-1 ml-2 text-xs font-semibold text-gray-500">
-                    <button class="hover:underline">Thích</button>
-                    <button class="hover:underline">Phản hồi</button>
+                    <button class="hover:underline btn-like-comment" data-comment-id="${comment.id}">
+                        ${comment.isLiked ? 'Bỏ thích' : 'Thích'} (${comment.likeCount || 0})
+                    </button>
+                    <button class="hover:underline btn-reply-comment" data-comment-id="${comment.id}">Phản hồi</button>
+
                     <span class="font-normal text-gray-400">${timeAgo}</span>
+                </div>
+                <div class="pl-8 mt-3 replies">
+                    ${comment.replies && comment.replies.length 
+                        ? comment.replies.map(reply => renderCommentItem(reply)).join('')
+                        : ''}
                 </div>
             </div>
         </div>
@@ -208,6 +216,63 @@ export const handleEvents = (container, statusId) => {
             }
         }
     });
+container.addEventListener('click', async (e) => {
+        // Handle Like Button
+        const likeBtn = e.target.closest('.btn-like-comment');
+        if (likeBtn) {
+            const commentId = likeBtn.dataset.commentId;
+
+            try {
+                if (likeBtn.textContent.includes('Thích')) {
+                    await commentService.likeComment(commentId);
+                } else {
+                    await commentService.unlikeComment(commentId);
+                }
+                // Reload comments after like/unlike
+                loadComments(statusId);
+            } catch (error) {
+                console.error('Error liking/unliking comment:', error);
+            }
+        }
+
+        // Handle Reply Button
+        const replyBtn = e.target.closest('.btn-reply-comment');
+        if (replyBtn) {
+            const commentId = replyBtn.dataset.commentId;
+            openReplyInput(container, commentId, statusId);
+        }
+    });
+    // Reply Input Handler
+        const openReplyInput = (container, commentId, statusId) => {
+            const commentItem = container.querySelector(`.comment-item[data-id="${commentId}"] .replies`);
+            if (!commentItem) return;
+
+            // Check if input already exists
+            if (commentItem.querySelector('.reply-input-container')) return;
+
+            commentItem.innerHTML += `
+                <div class="reply-input-container flex gap-3 mt-3">
+                    <textarea class="flex-1 bg-gray-100 border rounded-lg p-2 text-sm reply-input" placeholder="Viết phản hồi..."></textarea>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded send-reply-btn" data-parent-id="${commentId}">Gửi</button>
+                </div>
+            `;
+            
+            // Attach Reply Event
+            commentItem.querySelector('.send-reply-btn').addEventListener('click', async (e) => {
+                const input = commentItem.querySelector('.reply-input');
+                const content = input.value.trim();
+                if (!content) return;
+
+                try {
+                    await commentService.postComment(statusId, content, commentId);
+                    loadComments(statusId); // Refresh comments
+                } catch (error) {
+                    console.error('Error posting reply:', error);
+                }
+            });
+        };
+
+
 
     // Close menu when clicking outside
     document.addEventListener('click', (e) => {

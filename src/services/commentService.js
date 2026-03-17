@@ -14,20 +14,26 @@ export const postComment = async (statusId, content, parentId = null) => {
   const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.COMMENT.BASE, {
     statusId,
     content,
-    parentId
+    parentId,
   });
   return response.data;
 };
 
 export const updateComment = async (id, content) => {
   const response = await apiClient.put(`${APP_CONFIG.API_ENDPOINTS.COMMENT.BASE}/${id}`, {
-    content
+    content,
   });
+  return response.data;
+};
+
+export const deleteComment = async (id) => {
+  const response = await apiClient.delete(`${APP_CONFIG.API_ENDPOINTS.COMMENT.BASE}/${id}`);
   return response.data;
 };
 
 export default {
   getComments,
   postComment,
-  updateComment
+  updateComment,
+  deleteComment,
 };

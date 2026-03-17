@@ -881,6 +881,7 @@ const loadUserPosts = async (user) => {
     const response = await postController.getUserStatuses(user.id);
     // Xử lý dữ liệu trả về (có thể là data trực tiếp hoặc Axios response)
     const data = response?.data || response;
+    console.log("User posts response:", data);
     const postsList = Array.isArray(data) ? data : data?.content || [];
 
     if (postsList.length === 0) {

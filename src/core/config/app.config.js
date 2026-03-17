@@ -45,6 +45,10 @@ export const APP_CONFIG = {
       BASE: "/status-like",
       STATUS: "/status-like/:statusId",
     },
+    // User statistics endpoints
+    STATISTICS: {
+      NEW_USERS: "/statistics/new-users", // + ?type=WEEK|MONTH|YEAR
+    },
   },
 
   // Storage keys

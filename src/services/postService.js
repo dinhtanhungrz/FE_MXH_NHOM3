@@ -40,11 +40,17 @@ export const getProfilePosts = async () => {
 
 export const getUserPosts = async (userId, params = {}) => {
   const response = await apiClient.get(APP_CONFIG.API_ENDPOINTS.POST.USER + userId, { params });
-    return response;
+  return response;
+};
+
+export const getNewFeedsPublicAndFriends = async () => {
+  const response = await apiClient.get(APP_CONFIG.API_ENDPOINTS.POST.BASE);
+  return response.data;
 };
 
 export default {
   createPost,
   getProfilePosts,
   getUserPosts,
+  getNewFeedsPublicAndFriends,
 };

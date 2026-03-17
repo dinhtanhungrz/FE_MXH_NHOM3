@@ -1,5 +1,6 @@
 import commentService from "../services/commentService.js";
-import { formatRelativeTime } from "./utils/helpers.js";
+import commentController from "../controllers/commentController.js";
+import { formatRelativeTime, showConfirm, showToast } from "./utils/helpers.js";
 import { authState } from "../state/authState.js";
 
 /**
@@ -11,10 +12,13 @@ import { authState } from "../state/authState.js";
  * Render một item comment dựa trên dữ liệu từ API
  */
 export const renderCommentItem = (comment) => {
-    const isOwner = comment.isOwner === true || comment.owner === true || comment.username === authState.getUser()?.username;
-    const timeAgo = formatRelativeTime(comment.createdAt);
-    
-    return `
+  const isOwner =
+    comment.isOwner === true ||
+    comment.owner === true ||
+    comment.username === authState.getUser()?.username;
+  const timeAgo = formatRelativeTime(comment.createdAt);
+
+  return `
         <div class="comment-item mb-4 flex gap-3 group" data-id="${comment.id}">
             <img src="${comment.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.username)}&background=3b82f6&color=fff`}" 
                  class="w-8 h-8 rounded-full object-cover shrink-0 mt-1" alt="avatar">
@@ -22,7 +26,9 @@ export const renderCommentItem = (comment) => {
                 <div class="bg-gray-100 p-3 rounded-2xl relative inline-block max-w-full">
                     <div class="flex justify-between items-center mb-1 gap-4">
                         <span class="font-bold text-sm text-gray-900">${comment.username}</span>
-                        ${isOwner ? `
+                        ${
+                          isOwner
+                            ? `
                         <div class="relative">
                             <button class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition btn-comment-more">
                                 <svg class="w-4 h-4 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
@@ -40,10 +46,12 @@ export const renderCommentItem = (comment) => {
                                 </button>
                             </div>
                         </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                     </div>
                     <div class="text-sm text-gray-800 comment-content break-words">${comment.content}</div>
-                    ${comment.imageUrl ? `<img src="${comment.imageUrl}" class="rounded-lg mt-2 max-w-full h-auto" alt="comment-image">` : ''}
+                    ${comment.imageUrl ? `<img src="${comment.imageUrl}" class="rounded-lg mt-2 max-w-full h-auto" alt="comment-image">` : ""}
                 </div>
                 <div class="flex items-center gap-4 mt-1 ml-2 text-xs font-semibold text-gray-500">
                     <button class="hover:underline">Thích</button>
@@ -59,11 +67,13 @@ export const renderCommentItem = (comment) => {
  * Khởi tạo vùng comment cho một status
  */
 export const initCommentSection = async (container, statusId) => {
-    const user = authState.getUser();
-    const avatarUrl = user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'User')}&background=3b82f6&color=fff`;
+  const user = authState.getUser();
+  const avatarUrl =
+    user?.avatarUrl ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || "User")}&background=3b82f6&color=fff`;
 
-    // 1. Render khung nhập comment
-    container.innerHTML = `
+  // 1. Render khung nhập comment
+  container.innerHTML = `
         <div class="mt-2 pt-4">
             <div class="flex gap-3 mb-4">
                 <img src="${avatarUrl}" 
@@ -90,144 +100,142 @@ export const initCommentSection = async (container, statusId) => {
         </div>
     `;
 
-    // 2. Gắn sự kiện
-    handleEvents(container, statusId);
+  // 2. Gắn sự kiện
+  handleEvents(container, statusId);
 
-    // 3. Load danh sách comment ban đầu
-    loadComments(statusId);
+  // 3. Load danh sách comment ban đầu
+  loadComments(statusId);
 };
 
 const loadComments = async (statusId) => {
-    const listContainer = document.getElementById(`comment-list-${statusId}`);
-    if (!listContainer) return;
+  const listContainer = document.getElementById(`comment-list-${statusId}`);
+  if (!listContainer) return;
 
-    const spinner = listContainer.querySelector('.spinner-comments');
-    spinner?.classList.remove('hidden');
+  const spinner = listContainer.querySelector(".spinner-comments");
+  spinner?.classList.remove("hidden");
 
-    try {
-        const response = await commentService.getComments(statusId);
-        // commentService.getComments should return response.data directly if using axios nicely
-        // Let's check getComments implementation in commentService.js
-        const comments = response || [];
-        
-        // Clear spinner and old messages
-        listContainer.innerHTML = '';
-        if (comments.length === 0) {
-            // No comments yet
-        } else {
-            listContainer.innerHTML = comments.map(c => renderCommentItem(c)).join('');
-        }
-        
-        // Xử lý nút "Xem thêm"
-        const loadMoreBtn = listContainer.parentElement.querySelector('.btn-load-more-container');
-        if (comments.length >= 2) {
-            loadMoreBtn?.classList.remove('hidden');
-        }
-    } catch (error) {
-        console.error("Failed to load comments:", error);
-    } finally {
-        spinner?.classList.add('hidden');
+  try {
+    const response = await commentController.getComments(statusId);
+    const comments = response || [];
+
+    // Clear spinner and old messages
+    listContainer.innerHTML = "";
+    if (comments.length === 0) {
+      // No comments yet
+    } else {
+      listContainer.innerHTML = comments.map((c) => renderCommentItem(c)).join("");
     }
+
+    // Xử lý nút "Xem thêm"
+    const loadMoreBtn = listContainer.parentElement.querySelector(".btn-load-more-container");
+    if (comments.length >= 2) {
+      loadMoreBtn?.classList.remove("hidden");
+    }
+  } catch (error) {
+    console.error("Failed to load comments:", error);
+  } finally {
+    spinner?.classList.add("hidden");
+  }
 };
 
 export const handleEvents = (container, statusId) => {
-    const textarea = container.querySelector('.comment-textarea');
-    const postBtn = container.querySelector('.btn-post-comment');
+  const textarea = container.querySelector(".comment-textarea");
+  const postBtn = container.querySelector(".btn-post-comment");
 
-    if (!textarea || !postBtn) return;
+  if (!textarea || !postBtn) return;
 
-    // Auto resize textarea & show/hide post button
-    textarea.addEventListener('input', () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = (textarea.scrollHeight) + 'px';
-        
-        if (textarea.value.trim().length > 0) {
-            postBtn.classList.remove('hidden');
-        } else {
-            postBtn.classList.add('hidden');
-        }
-    });
+  // Auto resize textarea & show/hide post button
+  textarea.addEventListener("input", () => {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
 
-    // Post comment event
-    postBtn.addEventListener('click', async () => {
-        const content = textarea.value.trim();
-        if (!content) return;
+    if (textarea.value.trim().length > 0) {
+      postBtn.classList.remove("hidden");
+    } else {
+      postBtn.classList.add("hidden");
+    }
+  });
 
+  // Post comment event
+  postBtn.addEventListener("click", async () => {
+    const content = textarea.value.trim();
+    if (!content) return;
+
+    try {
+      await commentController.addComment(statusId, content);
+      textarea.value = "";
+      textarea.style.height = "auto";
+      postBtn.classList.add("hidden");
+      // Reload list
+      loadComments(statusId);
+    } catch (error) {
+      console.error("Post comment error:", error);
+      alert("Không thể đăng bình luận. Vui lòng thử lại!");
+    }
+  });
+
+  // Edit/Delete/More buttons events (Event Delegation)
+  container.addEventListener("click", async (e) => {
+    const moreBtn = e.target.closest(".btn-comment-more");
+    if (moreBtn) {
+      const menuDropdown = moreBtn.nextElementSibling;
+
+      // Đóng tất cả menu khác
+      container.querySelectorAll(".comment-action-menu").forEach((menu) => {
+        if (menu !== menuDropdown) menu.classList.add("hidden");
+      });
+
+      if (menuDropdown) {
+        menuDropdown.classList.toggle("hidden");
+      }
+      return;
+    }
+
+    const editBtn = e.target.closest(".btn-edit-comment");
+    if (editBtn) {
+      // Ẩn menu
+      const menu = editBtn.closest(".comment-action-menu");
+      if (menu) menu.classList.add("hidden");
+
+      const commentId = editBtn.dataset.id;
+      handleEditMode(container, commentId);
+      return;
+    }
+
+    const deleteBtn = e.target.closest(".btn-delete-comment");
+    if (deleteBtn) {
+      const commentId = deleteBtn.dataset.id;
+      if (showConfirm("Xóa bình luận", "Bạn có chắc chắn muốn xóa bình luận này?", "Xóa", "Hủy")) {
         try {
-            await commentService.postComment(statusId, content);
-            textarea.value = '';
-            textarea.style.height = 'auto';
-            postBtn.classList.add('hidden');
-            // Reload list
-            loadComments(statusId);
+          await commentController.deleteComment(commentId);
+          // Reload list
+          loadComments(statusId);
         } catch (error) {
-            console.error("Post comment error:", error);
-            alert("Không thể đăng bình luận. Vui lòng thử lại!");
+          console.log("Có lỗi xảy ra: ", error.message);
         }
-    });
+      }
+    }
+  });
 
-    // Edit/Delete/More buttons events (Event Delegation)
-    container.addEventListener('click', async (e) => {
-        const moreBtn = e.target.closest('.btn-comment-more');
-        if (moreBtn) {
-            const menuDropdown = moreBtn.nextElementSibling;
-            
-            // Đóng tất cả menu khác
-            container.querySelectorAll('.comment-action-menu').forEach(menu => {
-                if (menu !== menuDropdown) menu.classList.add('hidden');
-            });
-
-            if (menuDropdown) {
-                menuDropdown.classList.toggle('hidden');
-            }
-            return;
-        }
-
-        const editBtn = e.target.closest('.btn-edit-comment');
-        if (editBtn) {
-            // Ẩn menu
-            const menu = editBtn.closest('.comment-action-menu');
-            if (menu) menu.classList.add('hidden');
-
-            const commentId = editBtn.dataset.id;
-            handleEditMode(container, commentId);
-            return;
-        }
-
-        const deleteBtn = e.target.closest('.btn-delete-comment');
-        if (deleteBtn) {
-            const commentId = deleteBtn.dataset.id;
-            if (confirm('Bạn có chắc chắn muốn xóa bình luận này?')) {
-                try {
-                    // Logic xóa chưa có trong service, tôi sẽ thêm sau nếu cần
-                    // Hoặc tạm thời ẩn đi
-                    alert('Chức năng xóa đang được phát triển');
-                } catch (error) {
-                    alert('Lỗi khi xóa bình luận');
-                }
-            }
-        }
-    });
-
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.btn-comment-more')) {
-            container.querySelectorAll('.comment-action-menu').forEach(menu => {
-                menu.classList.add('hidden');
-            });
-        }
-    });
+  // Close menu when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".btn-comment-more")) {
+      container.querySelectorAll(".comment-action-menu").forEach((menu) => {
+        menu.classList.add("hidden");
+      });
+    }
+  });
 };
 
 const handleEditMode = (container, commentId) => {
-    const commentItem = container.querySelector(`.comment-item[data-id="${commentId}"]`);
-    if (!commentItem) return;
+  const commentItem = container.querySelector(`.comment-item[data-id="${commentId}"]`);
+  if (!commentItem) return;
 
-    const contentDiv = commentItem.querySelector('.comment-content');
-    const originalContent = contentDiv.innerText;
+  const contentDiv = commentItem.querySelector(".comment-content");
+  const originalContent = contentDiv.innerText;
 
-    // Thay thế text bằng textarea
-    contentDiv.innerHTML = `
+  // Thay thế text bằng textarea
+  contentDiv.innerHTML = `
         <div class="edit-area mt-2 space-y-2 w-full">
             <textarea class="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 edit-textarea">${originalContent}</textarea>
             <div class="flex justify-end gap-2">
@@ -237,42 +245,42 @@ const handleEditMode = (container, commentId) => {
         </div>
     `;
 
-    const editArea = contentDiv.querySelector('.edit-area');
-    
-    // Cancel
-    editArea.querySelector('.btn-cancel-edit').onclick = (e) => {
-        e.stopPropagation();
-        contentDiv.innerText = originalContent;
-    };
+  const editArea = contentDiv.querySelector(".edit-area");
 
-    // Save
-    const saveBtn = editArea.querySelector('.btn-save-edit');
-    saveBtn.onclick = async (e) => {
-        e.stopPropagation();
-        const newContent = editArea.querySelector('.edit-textarea').value.trim();
-        if (!newContent) {
-           alert("Nội dung không được để trống!");
-           return;
-        }
+  // Cancel
+  editArea.querySelector(".btn-cancel-edit").onclick = (e) => {
+    e.stopPropagation();
+    contentDiv.innerText = originalContent;
+  };
 
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Đang lưu...';
-        
-        try {
-            await commentService.updateComment(commentId, newContent);
-            contentDiv.innerText = newContent;
-        } catch (error) {
-            console.error("Cập nhật bình luận lỗi:", error);
-            alert("Lỗi khi cập nhật bình luận!");
-            // Re-enable button on error
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Lưu';
-        }
-    };
+  // Save
+  const saveBtn = editArea.querySelector(".btn-save-edit");
+  saveBtn.onclick = async (e) => {
+    e.stopPropagation();
+    const newContent = editArea.querySelector(".edit-textarea").value.trim();
+    if (!newContent) {
+      alert("Nội dung không được để trống!");
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Đang lưu...";
+
+    try {
+      await commentController.updateComment(commentId, newContent);
+      contentDiv.innerText = newContent;
+    } catch (error) {
+      console.error("Cập nhật bình luận lỗi:", error);
+      alert("Lỗi khi cập nhật bình luận!");
+      // Re-enable button on error
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Lưu";
+    }
+  };
 };
 
 export default {
-    initCommentSection,
-    renderCommentItem,
-    handleEvents
+  initCommentSection,
+  renderCommentItem,
+  handleEvents,
 };

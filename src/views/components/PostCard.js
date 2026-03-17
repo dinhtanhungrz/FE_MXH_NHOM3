@@ -15,7 +15,7 @@ export const renderPostCard = (post) => {
     imageUrls = [],
     likesCount = 0,
     commentsCount = 0,
-    liked = false,
+    like = false,
     visibility = "PUBLIC",
     updatedAt,
     user,
@@ -122,8 +122,8 @@ export const renderPostCard = (post) => {
       <!-- Post Actions -->
       <div class="px-4 py-1 flex items-center justify-between text-sm border-b border-gray-100">
         <button 
-            class="flex-1 py-2 text-center transition rounded flex items-center justify-center gap-2 btn-like ${liked ? "text-blue-600" : "text-gray-600"}"
-            data-liked="${liked}"
+            class="flex-1 py-2 text-center transition rounded flex items-center justify-center gap-2 btn-like ${like ? "text-blue-600" : "text-gray-600"}"
+            data-liked="${like}"
         >
 
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

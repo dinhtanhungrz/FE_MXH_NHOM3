@@ -60,8 +60,20 @@ export const getUserStatuses = async (userId) => {
   }
 };
 
+export const getNewFeedsPublicAndFriends = async () => {
+  try {
+    const posts = await postService.getNewFeedsPublicAndFriends();
+    return posts;
+  } catch (error) {
+    console.error("Get feed statuses error:", error);
+    showToast(error.message || "Lấy bài viết thất bại", "error");
+    return [];
+  }
+};
+
 export default {
   createNewPost,
   getProfilePosts,
   getUserStatuses,
+  getNewFeedsPublicAndFriends,
 };

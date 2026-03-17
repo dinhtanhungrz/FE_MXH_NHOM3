@@ -2,6 +2,30 @@ import { Layout } from "../../components/Layout.js";
 import { authState } from "../../../state/authState.js";
 import { hideLoading, showLoading } from "../../../core/utils/helpers.js";
 import postController from "../../../controllers/postController.js";
+import { renderPostCard, setupPostEventHandlers } from "../../components/PostCard.js";
+
+/**
+ * Transform API status response to PostCard format
+ */
+const transformStatusToPost = (status) => {
+  return {
+    id: status.id,
+    content: status.content,
+    createdAt: status.createdAt,
+    updatedAt: status.updatedAt,
+    visibility: status.visibility,
+    imageUrls: status.imageUrls || [], // Already has .url property
+    likesCount: status.likesCount || 0,
+    commentsCount: status.commentsCount || 0,
+    like: status.like || false,
+    user: {
+      id: status.authorId,
+      username: status.authorName,
+      fullName: status.authorName,
+      avatarUrl: status.authorAvatarUrl,
+    },
+  };
+};
 
 /**
  * Home Page
@@ -118,6 +142,8 @@ export const HomePage = async () => {
   }
 
   // News Feed cho user đã login
+  const statuses = await postController.getNewFeedsPublicAndFriends();
+
   const content = `
         <div class="max-w-4xl mx-auto">
             <div class="grid lg:grid-cols-3 gap-6">
@@ -160,66 +186,20 @@ export const HomePage = async () => {
                         </div>
                     </div>
 
-                    <!-- Sample Posts -->
-                    <div class="bg-white rounded-2xl shadow-lg p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <img 
-                                    src="https://ui-avatars.com/api/?name=Demo+User&background=ef4444&color=fff"
-                                    alt="Demo User"
-                                    class="w-12 h-12 rounded-full"
-                                />
-                                <div>
-                                    <p class="font-semibold text-gray-900">Demo User</p>
-                                    <p class="text-sm text-gray-500">2 giờ trước · 🌍</p>
-                                </div>
-                            </div>
-                            <button class="text-gray-400 hover:text-gray-600">
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <p class="text-gray-800 mb-4">
-                            Chào mừng đến với mạng xã hội! Đây là một bài post mẫu. Bạn có thể tạo bài viết mới, thích, bình luận và chia sẻ. 🎉
-                        </p>
-                        
-                        <img 
-                            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop"
-                            alt="Post"
-                            class="w-full rounded-lg mb-4"
-                        />
-                        
-                        <!-- Post Actions -->
-                        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-                            <button class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition px-4 py-2 rounded-lg hover:bg-blue-50">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
-                                </svg>
-                                <span class="font-medium">Thích</span>
-                            </button>
-                            <button class="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition px-4 py-2 rounded-lg hover:bg-green-50">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                                <span class="font-medium">Bình luận</span>
-                            </button>
-                            <button class="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition px-4 py-2 rounded-lg hover:bg-purple-50">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                                </svg>
-                                <span class="font-medium">Chia sẻ</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div class="text-center py-12">
-                        <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <p class="text-gray-500 text-lg">Bạn đã xem hết bài viết mới</p>
+                    <!-- Feed Posts -->
+                    <div class="posts-feed space-y-6">
+                        ${
+                          statuses && statuses.length > 0
+                            ? statuses
+                                .map((status) => renderPostCard(transformStatusToPost(status)))
+                                .join("")
+                            : `<div class="text-center py-12">
+                              <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                              </svg>
+                              <p class="text-gray-500 text-lg">Chưa có bài viết nào</p>
+                            </div>`
+                        }
                     </div>
                 </div>
 
@@ -278,6 +258,11 @@ export const HomePage = async () => {
 
   setTimeout(() => {
     initializeHomePage();
+    // Setup post event handlers for like/comment/share/menu
+    const feedContainer = document.querySelector(".posts-feed");
+    if (feedContainer) {
+      setupPostEventHandlers(feedContainer);
+    }
   }, 100);
 
   return Layout(content);

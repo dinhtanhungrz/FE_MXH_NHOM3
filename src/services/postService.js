@@ -33,6 +33,40 @@ export const createPost = async (content, visibility, images) => {
   return response.data;
 };
 
+/**
+ * Update an existing post
+ * @param {number} statusId - ID of the status to update
+ * @param {Object} payload - { content?, visibility?, deleteImageIds?, newImages? }
+ * @returns {Promise<Object>} API response
+ */
+export const updatePost = async (statusId, { content, visibility, deleteImageIds, newImages }) => {
+  const formData = new FormData();
+
+  if (content !== undefined) formData.append("content", content);
+  if (visibility !== undefined) formData.append("visibility", visibility);
+
+  // deleteImageIds là mảng — append từng phần tử riêng
+  if (deleteImageIds && deleteImageIds.length > 0) {
+    deleteImageIds.forEach((id) => formData.append("deleteImageIds", id));
+  }
+
+  if (newImages && newImages.length > 0) {
+    newImages.forEach((file) => formData.append("newImages", file));
+  }
+
+  const response = await apiClient.patch(
+    `${APP_CONFIG.API_ENDPOINTS.POST.BASE}/${statusId}`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+  return response.data;
+};
+
+export const deletePost = async (statusId) => {
+  const response = await apiClient.delete(`${APP_CONFIG.API_ENDPOINTS.POST.BASE}/${statusId}`);
+  return response.data;
+};
+
 export const getProfilePosts = async () => {
   const response = await apiClient.get(APP_CONFIG.API_ENDPOINTS.POST.PROFILE);
   return response.data;
@@ -50,6 +84,8 @@ export const getNewFeedsPublicAndFriends = async () => {
 
 export default {
   createPost,
+  updatePost,
+  deletePost,
   getProfilePosts,
   getUserPosts,
   getNewFeedsPublicAndFriends,

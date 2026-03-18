@@ -6,6 +6,7 @@ import {
   formatDate,
   showToast,
   formatRelativeTime,
+  refreshUserDisplay,
 } from "../../../core/utils/helpers.js";
 import postController from "../../../controllers/postController.js";
 import authState from "../../../state/authState.js";
@@ -48,7 +49,7 @@ export const ProfilePage = async () => {
                                 alt="${user.username}"
                                 class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-xl object-cover"
                             />
-                            <button class="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition">
+                            <button id="openAvatarCropperBtn" class="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition" title="Chỉnh sửa ảnh đại diện">
                                 <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -63,25 +64,13 @@ export const ProfilePage = async () => {
                                 <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
                                     ${user.fullName || user.username}
                                 </h1>
-                                <p class="text-lg text-gray-500 mt-2 font-medium">@${user.username}</p>
+                                <p class="text-lg text-gray-300 mt-2 font-medium">@${user.username}</p>
                             </div>
-                            
-                            <!-- Bio Section -->
-                            ${
-                              //   user.bio
-                              true
-                                ? `
-                                <p class="text-gray-700 mt-4 text-base leading-relaxed max-w-3xl">
-                                    bio mẫu abc
-                                </p>
-                            `
-                                : ""
-                            }
 
                             <!-- Stats -->
                             <div class="flex gap-8 mt-6">
                                 <div>
-                                    <p class="text-3xl font-bold text-gray-900">${user.postsCount || 0}</p>
+                                    <p class="text-3xl font-bold text-gray-900">${statuses.length || 0}</p>
                                     <p class="text-sm text-gray-600 mt-1 font-medium">Bài viết</p>
                                 </div>
                                 <div>
@@ -336,6 +325,83 @@ export const ProfilePage = async () => {
                 </form>
             </div>
         </div>
+
+        <!-- Avatar Cropper Modal -->
+        <div id="avatarCropperModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <!-- Modal Header -->
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-900">Chỉnh sửa ảnh đại diện</h2>
+                    <button id="closeCropperModal" class="text-gray-500 hover:text-gray-700 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <!-- File Input -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Chọn ảnh</label>
+                            <input 
+                                type="file" 
+                                id="cropperImageInput" 
+                                accept="image/*"
+                                class="w-full text-sm file:px-4 file:py-2 file:text-sm file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition"
+                            />
+                        </div>
+
+                        <!-- Image Container for Cropper -->
+                        <div id="cropperImageContainer" class="hidden">
+                            <div class="bg-gray-50 rounded-lg " style="max-height: 300px;">
+                                <img 
+                                    id="cropperImage" 
+                                    src="" 
+                                    alt="Image to crop"
+                                    class="max-w-full"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div id="cropperPreviewContainer" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Xem trước</label>
+                            <div class="flex justify-center">
+                                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-200 bg-gray-100">
+                                    <img 
+                                        id="cropperPreview" 
+                                        src="" 
+                                        alt="Cropped preview"
+                                        class="w-full h-full object-cover"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex gap-2">
+                    <button 
+                        type="button" 
+                        id="cancelCropperBtn" 
+                        class="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
+                    >
+                        Hủy
+                    </button>
+                    <button 
+                        type="button" 
+                        id="saveCropperBtn" 
+                        class="flex-1 px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled
+                    >
+                        Lưu
+                    </button>
+                </div>
+            </div>
+        </div>
     `;
 
   const layoutContent = Layout(content);
@@ -343,6 +409,7 @@ export const ProfilePage = async () => {
   // Thiết lập event listeners sau khi DOM được render
   setTimeout(() => {
     setupEditProfileModal(user);
+    setupAvatarCropper();
     const postsList = document.getElementById("postsList");
     if (postsList) {
       setupPostEventHandlers(postsList);
@@ -400,11 +467,15 @@ const handleUpdateProfile = async (formData) => {
       await userController.loadCurrentUser();
 
       hideLoading();
+      showToast("Cập nhật profile thành công", "success");
 
-      // Reload trang để cập nhật Header, Sidebar và thông tin user
+      // Re-render header, sidebar với dữ liệu mới
+      await refreshUserDisplay();
+
+      // Reload trang sau 1 giây để cập nhật hoàn toàn
       setTimeout(() => {
         window.location.reload();
-      }, 300);
+      }, 1000);
     } else {
       hideLoading();
       showToast("Cập nhật profile thất bại", "error");
@@ -818,6 +889,158 @@ const refreshStatuses = async () => {
   } catch (error) {
     console.error("Failed to fetch user statuses:", error);
   }
+};
+
+/**
+ * Setup Avatar Cropper Modal
+ * Initialize image cropping functionality with Cropper.js
+ */
+const setupAvatarCropper = () => {
+  const openBtn = document.getElementById("openAvatarCropperBtn");
+  const modal = document.getElementById("avatarCropperModal");
+  const closeBtn = document.getElementById("closeCropperModal");
+  const cancelBtn = document.getElementById("cancelCropperBtn");
+  const saveBtn = document.getElementById("saveCropperBtn");
+  const fileInput = document.getElementById("cropperImageInput");
+  const imageContainer = document.getElementById("cropperImageContainer");
+  const image = document.getElementById("cropperImage");
+  const previewContainer = document.getElementById("cropperPreviewContainer");
+  const preview = document.getElementById("cropperPreview");
+
+  if (!openBtn || !modal) return;
+
+  let cropper = null;
+
+  // Mở modal
+  openBtn.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  });
+
+  // Đóng modal
+  const closeModal = () => {
+    modal.classList.add("hidden");
+    document.body.style.overflow = "";
+
+    // Reset
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    fileInput.value = "";
+    imageContainer.classList.add("hidden");
+    previewContainer.classList.add("hidden");
+    saveBtn.disabled = true;
+  };
+
+  closeBtn?.addEventListener("click", closeModal);
+  cancelBtn?.addEventListener("click", closeModal);
+
+  // Click ngoài modal để đóng
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Xử lý chọn file
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      image.src = event.target.result;
+      imageContainer.classList.remove("hidden");
+      previewContainer.classList.remove("hidden");
+      saveBtn.disabled = false;
+
+      // Destroy cropper cũ nếu tồn tại
+      if (cropper) {
+        cropper.destroy();
+      }
+
+      // Khởi tạo Cropper.js
+      setTimeout(() => {
+        cropper = new Cropper(image, {
+          aspectRatio: 1, // Hình vuông
+          viewMode: 1,
+          autoCropArea: 1,
+          responsive: true,
+          restore: true,
+          guides: true,
+          center: true,
+          highlight: true,
+          cropBoxMovable: false,
+          cropBoxResizable: false,
+          toggleDragModeOnDblclick: true,
+          movable: true,
+          dragMode: "move",
+          // Hàm cập nhật preview
+          crop() {
+            if (!cropper) return;
+
+            const canvas = cropper.getCroppedCanvas();
+            preview.src = canvas.toDataURL();
+          },
+        });
+
+        // Trigger crop event to show initial preview
+        if (cropper) {
+          cropper.crop();
+        }
+      }, 100);
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  // Lưu ảnh đã cắt
+  saveBtn.addEventListener("click", async () => {
+    if (!cropper) {
+      showToast("Vui lòng chọn ảnh", "error");
+      return;
+    }
+
+    try {
+      saveBtn.disabled = true;
+      saveBtn.innerText = "Đang lưu...";
+
+      const canvas = cropper.getCroppedCanvas();
+
+      // Convert canvas to blob
+      canvas.toBlob(
+        async (blob) => {
+          const file = new File([blob], "avatar.png", { type: "image/png" });
+          try {
+            const response = await userController.updateAvatar(file);
+
+            if (response) {
+              showToast("Cập nhật ảnh đại diện thành công", "success");
+              closeModal();
+
+              await refreshUserDisplay(); // Reload header, sidebar với avatar mới
+            } else {
+              showToast("Cập nhật ảnh thất bại", "error");
+              saveBtn.disabled = false;
+              saveBtn.innerText = "Lưu";
+            }
+          } catch (error) {
+            showToast(error.message || "Lỗi khi cập nhật ảnh", "error");
+            saveBtn.disabled = false;
+            saveBtn.innerText = "Lưu";
+          }
+        },
+        "image/png",
+        0.95,
+      );
+    } catch (error) {
+      showToast("Lỗi: " + error.message, "error");
+      saveBtn.disabled = false;
+      saveBtn.innerText = "Lưu";
+    }
+  });
 };
 
 export default ProfilePage;

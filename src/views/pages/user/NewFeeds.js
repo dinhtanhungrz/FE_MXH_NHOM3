@@ -2,6 +2,7 @@ import { authState } from "../../../state/authState.js";
 import postController from "../../../controllers/postController.js";
 import { renderPostCard, setupPostEventHandlers } from "../../components/PostCard.js";
 import { showLoading, hideLoading } from "../../../core/utils/helpers.js";
+import Layout from "../../components/Layout.js";
 
 /**
  * New Feeds Page
@@ -186,19 +187,19 @@ export const NewFeeds = async () => {
 
   // Tải dữ liệu thật sau khi render layout
   setTimeout(async () => {
-    const feedList = document.getElementById('feedList');
+    const feedList = document.getElementById("feedList");
     if (feedList) {
-        const posts = await postController.getFeedStatuses();
-        if (posts && posts.length > 0) {
-            feedList.innerHTML = posts.map(post => renderPostCard(post)).join('');
-            setupPostEventHandlers(feedList);
-        } else {
-            feedList.innerHTML = `
+      const posts = await postController.getFeedStatuses();
+      if (posts && posts.length > 0) {
+        feedList.innerHTML = posts.map((post) => renderPostCard(post)).join("");
+        setupPostEventHandlers(feedList);
+      } else {
+        feedList.innerHTML = `
                 <div class="text-center py-12 bg-white rounded-2xl shadow-sm">
                     <p class="text-gray-500">Chưa có bài viết nào trong bản tin</p>
                 </div>
             `;
-        }
+      }
     }
   }, 0);
 

@@ -237,6 +237,71 @@ export const truncateText = (text, maxLength) => {
   return text.substring(0, maxLength) + "...";
 };
 
+/**
+ * Re-render user info trong Header và Sidebar
+ * Cập nhật avatar, username, fullName từ AuthState.user
+ * @param {Object} user - User object từ authState.getUser()
+ * @returns {void}
+ */
+export const rerenderUserInfo = (user) => {
+  if (!user) return;
+
+  const userName = user?.username || user?.name || user?.email || "User";
+  const userAvatar =
+    user?.avatarUrl ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=fff`;
+  const fullName = user?.fullName || user?.name || userName;
+
+  // ===== UPDATE HEADER =====
+  // Header avatar
+  const headerAvatar = document.querySelector("header img[alt]");
+  if (headerAvatar) {
+    headerAvatar.src = userAvatar;
+    headerAvatar.alt = userName;
+  }
+
+  // ===== UPDATE SIDEBAR =====
+  // Sidebar user avatar
+  const sidebarAvatars = document.querySelectorAll(".py-4 img[alt]");
+  sidebarAvatars.forEach((avatar) => {
+    avatar.src = userAvatar;
+    avatar.alt = userName;
+  });
+
+  // Sidebar username
+  const sidebarUsernames = document.querySelectorAll(".py-4 .text-sm.font-semibold.text-gray-800");
+  sidebarUsernames.forEach((el) => {
+    el.textContent = userName;
+  });
+
+  // Sidebar @username
+  const sidebarAtUsernames = document.querySelectorAll(".py-4 .text-xs.text-gray-500");
+  sidebarAtUsernames.forEach((el) => {
+    el.textContent = `@${userName}`;
+  });
+
+  console.log("✅ Re-rendered user info:", { userName, fullName });
+};
+
+/**
+ * Re-render user info với auto-fetch từ AuthState
+ * Hàm tiện lợi - tự động lấy user từ authState
+ * @returns {void}
+ */
+export const refreshUserDisplay = async () => {
+  try {
+    // Dynamic import authState để tránh circular dependency
+    const { default: authState } = await import("../../state/authState.js");
+    const user = authState.getUser();
+
+    if (user) {
+      rerenderUserInfo(user);
+    }
+  } catch (error) {
+    console.error("Error refreshing user display:", error);
+  }
+};
+
 // Add CSS animations
 const style = document.createElement("style");
 style.textContent = `

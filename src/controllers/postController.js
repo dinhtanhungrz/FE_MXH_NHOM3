@@ -59,25 +59,21 @@ export const getUserStatuses = async (userId) => {
     return [];
   }
 };
-const getNewsFeed = async (page = 0, size = 10) => {
-    try {
-        const response = await fetch(`/api/statuses/newsfeed?page=${page}&size=${size}`, {
-            headers: {
-                Authorization: `Bearer ${authState.getToken()}`
-            }
-        });
-        if (!response.ok) throw new Error("Failed to fetch newsfeed");
-        const result = await response.json();
-        return result.data.content; // Assuming `content` contains the posts
-    } catch (error) {
-        console.error("Error fetching newsfeed:", error);
-        throw error;
-    }
-};
 
+export const getNewFeedsPublicAndFriends = async () => {
+  try {
+    const posts = await postService.getNewFeedsPublicAndFriends();
+    return posts;
+  } catch (error) {
+    console.error("Get feed statuses error:", error);
+    showToast(error.message || "Lấy bài viết thất bại", "error");
+    return [];
+  }
+};
 
 export default {
   createNewPost,
   getProfilePosts,
   getUserStatuses,
-  getNewsFeed};
+  getNewFeedsPublicAndFriends,
+};

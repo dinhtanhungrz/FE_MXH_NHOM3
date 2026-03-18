@@ -68,16 +68,16 @@ export const updateUserProfile = async (userData) => {
  * @param {File} file - Avatar file
  * @returns {Promise<boolean>} Success status
  */
-export const uploadUserAvatar = async (file) => {
+export const updateAvatar = async (file) => {
   try {
-    const response = await userService.uploadAvatar(file);
+    const response = await userService.updateAvatar(file);
 
     // Update user avatar in state
     const currentUser = authState.getUser();
     if (currentUser) {
       authState.setUser({
         ...currentUser,
-        avatar: response.avatarUrl || response.avatar,
+        avatarUrl: response.data || response.data.data,
       });
     }
 
@@ -235,7 +235,7 @@ export const unfriend = async (userId) => {
 export const getFriendList = async (userId, params = {}) => {
   // Adjust endpoint as needed (remove /api if not required)
   try {
-    const response = await userService.getFriendList(userId, params)
+    const response = await userService.getFriendList(userId, params);
     return response;
   } catch (error) {
     console.error("Remove friend error:", error);
@@ -248,7 +248,7 @@ export default {
   loadCurrentUser,
   loadUserProfile,
   updateUserProfile,
-  uploadUserAvatar,
+  updateAvatar,
   getUser,
   getAllUsers,
   updatePassword,

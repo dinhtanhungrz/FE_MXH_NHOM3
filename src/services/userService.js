@@ -45,11 +45,15 @@ export const updateProfile = async (userData) => {
  * @param {File} file - Avatar file
  * @returns {Promise<Object>}
  */
-export const uploadAvatar = async (file) => {
+export const updateAvatar = async (file) => {
   const formData = new FormData();
   formData.append("avatar", file);
 
-  const response = await apiClient.post(APP_CONFIG.API_ENDPOINTS.USER.AVATAR, formData);
+  const response = await apiClient.patch(APP_CONFIG.API_ENDPOINTS.USER.AVATAR, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response;
 };
 
@@ -162,7 +166,7 @@ export default {
   getCurrentUser,
   getUserProfile,
   updateProfile,
-  uploadAvatar,
+  updateAvatar,
   getAllUsers,
   updatePassword,
   blockUser,
@@ -171,6 +175,6 @@ export default {
   unfriend,
   getFriendStatus,
   getFriendList,
-  // acceptFriendRequest,
-  // rejectFriendRequest,
+  acceptFriendRequest,
+  rejectFriendRequest,
 };

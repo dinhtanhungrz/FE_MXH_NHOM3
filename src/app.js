@@ -13,6 +13,7 @@ import SettingsPage from "./views/pages/user/SettingsPage.js";
 import { UserProfilePage, initUserProfilePageEvents } from "./views/pages/user/UserProfilePage.js";
 import { FriendsListPage } from "./views/pages/user/FriendsListPage.js";
 import { MutualFriendsPage } from "./views/pages/user/MutualFriendsPage.js";
+import AdminAnalyticsPage from "./views/pages/admin/AdminAnalyticsPage.js";
 /**
  * Application Bootstrap
  * Entry point của ứng dụng
@@ -26,7 +27,6 @@ function registerRoutes() {
     requiresAuth: false,
   });
 
-  
   router.addRoute("/newfeeds", NewFeeds, {
     title: "Dòng thời gian - Social Network",
     requiresAuth: false,
@@ -54,18 +54,28 @@ function registerRoutes() {
     requiresAdmin: true,
   });
 
+  router.addRoute("/admin/statistics", AdminAnalyticsPage, {
+    title: "Thống kê người dùng- Social Network",
+    requiresAuth: true,
+    requiresAdmin: true,
+  });
+
   // Protected routes
   router.addRoute("/profile", ProfilePage, {
     title: "Trang cá nhân - Social Network",
     requiresAuth: true,
   });
 
-  router.addRoute("/user-profile/:id", async (params) => {
-    return await UserProfilePage(params.id);
-  }, {
-    title: "Trang cá nhân người dùng - Social Network",
-    requiresAuth: true,
-  });
+  router.addRoute(
+    "/user-profile/:id",
+    async (params) => {
+      return await UserProfilePage(params.id);
+    },
+    {
+      title: "Trang cá nhân người dùng - Social Network",
+      requiresAuth: true,
+    },
+  );
 
   router.addRoute("/settings", SettingsPage, {
     title: "Cài đặt - Social Network",
@@ -74,22 +84,29 @@ function registerRoutes() {
 
   // Placeholder routes (sẵn sàng mở rộng)
 
-
   // danh sách bạn bè
-    router.addRoute("/friends", async(params)=>{
-    return await FriendsListPage(params);
-  },{
-    title:"Danh sách bạn bè",
-    requiresAuth:true
-  });
+  router.addRoute(
+    "/friends",
+    async (params) => {
+      return await FriendsListPage(params);
+    },
+    {
+      title: "Danh sách bạn bè",
+      requiresAuth: true,
+    },
+  );
 
-  // bạn chung 
-  router.addRoute("/mutual-friends/:id", async(params)=>{
-    return await MutualFriendsPage(params);
-  },{
-    title:"Bạn chung",
-    requiresAuth:true
-  });
+  // bạn chung
+  router.addRoute(
+    "/mutual-friends/:id",
+    async (params) => {
+      return await MutualFriendsPage(params);
+    },
+    {
+      title: "Bạn chung",
+      requiresAuth: true,
+    },
+  );
 
   router.addRoute(
     "/messages",
@@ -197,14 +214,13 @@ function initApp() {
   // click user link
   document.addEventListener("click", (e) => {
     const userLink = e.target.closest(".user-link");
-    if(!userLink) return;
+    if (!userLink) return;
 
     const userId = userLink.dataset.userId;
-    if(userId) {
+    if (userId) {
       router.navigate(`/user-profile/${userId}`);
     }
   });
-
 
   console.log("✓ App initialized successfully");
   console.log("Current auth state:", {

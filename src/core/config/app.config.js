@@ -16,7 +16,7 @@ export const APP_CONFIG = {
       BASE: "/users",
       ME: "/users/me",
       PROFILE: "/users/profile",
-      AVATAR: "/users/me/avatar",
+      AVATAR: "/users/update-avatar",
       PASSWORD: "/users/password",
       BLOCK: "/users/block",
       FRIEND_REQUEST: "/users/friend-request/", // + userId
@@ -43,7 +43,11 @@ export const APP_CONFIG = {
     // Like endpoints
     LIKE: {
       BASE: "/status-like",
-      STATUS: "/status-like/:statusId"
+      STATUS: "/status-like/:statusId",
+    },
+    // User statistics endpoints
+    STATISTICS: {
+      NEW_USERS: "/statistics/new-users", // + ?type=WEEK|MONTH|YEAR
     },
   },
 

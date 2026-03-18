@@ -38,6 +38,52 @@ export const createNewPost = async (content, visibility, images) => {
   }
 };
 
+/**
+ * Update post — content, visibility, thêm/xóa ảnh
+ * @param {number} statusId
+ * @param {Object} payload - { content?, visibility?, deleteImageIds?, newImages? }
+ * @returns {Promise<boolean>}
+ */
+export const updatePost = async (statusId, payload) => {
+  try {
+    // Validate: phải có ít nhất 1 thay đổi
+    const hasChange =
+      payload.content !== undefined ||
+      payload.visibility !== undefined ||
+      (payload.deleteImageIds && payload.deleteImageIds.length > 0) ||
+      (payload.newImages && payload.newImages.length > 0);
+
+    if (!hasChange) {
+      showToast("Không có thay đổi nào để lưu", "error");
+      return false;
+    }
+
+    // Validate content nếu có
+    if (payload.content !== undefined && payload.content.trim().length > 3000) {
+      showToast("Nội dung không được vượt quá 3000 ký tự", "error");
+      return false;
+    }
+
+    await postService.updatePost(statusId, payload);
+    showToast("Cập nhật bài viết thành công!", "success");
+    return true;
+  } catch (error) {
+    showToast(error.message || "Cập nhật bài viết thất bại", "error");
+    return false;
+  }
+};
+
+export const deletePost = async (statusId) => {
+  try {
+    await postService.deletePost(statusId);
+    showToast("Đã xóa bài viết", "success");
+    return true;
+  } catch (error) {
+    showToast(error.message || "Xóa bài viết thất bại", "error");
+    return false;
+  }
+};
+
 export const getProfilePosts = async () => {
   try {
     const posts = await postService.getProfilePosts();
@@ -73,6 +119,8 @@ export const getNewFeedsPublicAndFriends = async () => {
 
 export default {
   createNewPost,
+  updatePost,
+  deletePost,
   getProfilePosts,
   getUserStatuses,
   getNewFeedsPublicAndFriends,

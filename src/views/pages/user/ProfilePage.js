@@ -70,7 +70,7 @@ export const ProfilePage = async () => {
                             <!-- Stats -->
                             <div class="flex gap-8 mt-6">
                                 <div>
-                                    <p class="text-3xl font-bold text-gray-900">${statuses.length || 0}</p>
+                                    <p class="text-3xl font-bold text-gray-900" id="postCount">${statuses.length || 0}</p>
                                     <p class="text-sm text-gray-600 mt-1 font-medium">Bài viết</p>
                                 </div>
                                 <div>
@@ -412,7 +412,7 @@ export const ProfilePage = async () => {
     setupAvatarCropper();
     const postsList = document.getElementById("postsList");
     if (postsList) {
-      setupPostEventHandlers(postsList);
+      attachPostsListListeners(postsList);
     }
     initializeCreatePost();
   }, 100);
@@ -878,13 +878,34 @@ const initializePostModal = () => {
   });
 };
 
+const attachPostsListListeners = (postsList) => {
+  setupPostEventHandlers(postsList);
+
+  // Dùng { once: false } mặc định nhưng cần tránh duplicate listener
+  // → clone node để xóa hết listener cũ trước khi gắn mới
+  const fresh = postsList.cloneNode(true);
+  postsList.parentNode.replaceChild(fresh, postsList);
+
+  setupPostEventHandlers(fresh);
+
+  fresh.addEventListener("postUpdated", async () => {
+    await refreshStatuses();
+  });
+
+  fresh.addEventListener("postDeleted", () => {
+    const remaining = fresh.querySelectorAll("article[data-post-id]").length;
+    const postCountEl = document.getElementById("postCount");
+    if (postCountEl) postCountEl.textContent = remaining;
+  });
+};
+
 const refreshStatuses = async () => {
   try {
     const statuses = await postController.getProfilePosts();
     const postsList = document.getElementById("postsList");
     if (postsList) {
       postsList.innerHTML = renderPosts(statuses);
-      setupPostEventHandlers(postsList);
+      attachPostsListListeners(postsList);
     }
   } catch (error) {
     console.error("Failed to fetch user statuses:", error);

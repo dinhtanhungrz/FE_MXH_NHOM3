@@ -48,10 +48,19 @@ export const deleteComment = async (commentId) => {
     showToast("Failed to delete comment", "error");
   }
 };
+export const likeComment = async (commentId) => {
+  return await commentService.likeComment(commentId);
+};
+
+export const replyComment = async (commentId, content) => {
+  return commentService.replyComment(commentId, content);
+};
 
 export default {
   getComments,
   addComment,
   updateComment,
   deleteComment,
+  likeComment,
+  replyComment,
 };

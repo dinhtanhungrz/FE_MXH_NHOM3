@@ -64,6 +64,8 @@ export const commentEndpoints = {
     list: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.LIST, { postId }),
     create: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.CREATE, { postId }),
     delete: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.DELETE, { id: commentId }),
+    like: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.LIKE, { id: commentId }),
+    reply: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.REPLY, { id: commentId }),
 };
 
 

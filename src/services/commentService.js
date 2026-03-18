@@ -30,10 +30,23 @@ export const deleteComment = async (id) => {
   const response = await apiClient.delete(`${APP_CONFIG.API_ENDPOINTS.COMMENT.BASE}/${id}`);
   return response.data;
 };
+export const likeComment = async (commentId) => {
+  const response = await apiClient.post(`${APP_CONFIG.API_ENDPOINTS.COMMENT.BASE}/${commentId}/like`);
+  return response.data; 
+};
+
+export const replyComment = async (commentId, content) => {
+  const response = await apiClient.post(`${APP_CONFIG.API_ENDPOINTS.COMMENT.BASE}/${commentId}/reply`, { 
+    content 
+  });
+  return response.data;
+};
 
 export default {
   getComments,
   postComment,
   updateComment,
   deleteComment,
+  likeComment,
+  replyComment,
 };

@@ -49,6 +49,10 @@ export const APP_CONFIG = {
     STATISTICS: {
       NEW_USERS: "/statistics/new-users", // + ?type=WEEK|MONTH|YEAR
     },
+    VISITS: {
+      RECORD_VISIT: "/app-visits/record",
+      STATISTICS: "/app-visits/statistics",
+    },
   },
 
   // Storage keys

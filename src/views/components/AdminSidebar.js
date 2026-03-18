@@ -18,26 +18,8 @@ export const AdminSidebar = () => {
       active: currentHash === "#/admin/users",
     },
     {
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>`,
-      label: "Duyệt bài viết",
-      href: "#/admin/posts",
-      active: currentHash === "#/admin/posts",
-    },
-    {
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 5v2M8 7a4 4 0 118 0M8 19a4 4 0 118 0M5 7a2 2 0 114 0M5 19a2 2 0 114 0M3 7a1 1 0 112 0m0 12a1 1 0 11-2 0"></path>`,
-      label: "Báo cáo vi phạm",
-      href: "#/admin/reports",
-      active: currentHash === "#/admin/reports",
-    },
-    {
-      icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>`,
-      label: "Quản lý nội dung",
-      href: "#/admin/content",
-      active: currentHash === "#/admin/content",
-    },
-    {
       icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>`,
-      label: "Thống kê người dùng",
+      label: "Thống kê",
       href: "#/admin/statistics",
       active: currentHash === "#/admin/statistics",
     },

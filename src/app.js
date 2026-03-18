@@ -14,6 +14,7 @@ import { UserProfilePage, initUserProfilePageEvents } from "./views/pages/user/U
 import { FriendsListPage } from "./views/pages/user/FriendsListPage.js";
 import { MutualFriendsPage } from "./views/pages/user/MutualFriendsPage.js";
 import AdminAnalyticsPage from "./views/pages/admin/AdminAnalyticsPage.js";
+import visitStatisticsController from "./controllers/visitStatisticsController.js";
 /**
  * Application Bootstrap
  * Entry point của ứng dụng
@@ -169,6 +170,10 @@ function setupNavigationGuards() {
 
     // Scroll to top
     window.scrollTo(0, 0);
+
+    if (from === null) {
+      visitStatisticsController.recordVisit();
+    }
 
     // Initialize event listeners for user profile page
     if (to.path && to.path.startsWith("/user-profile/")) {

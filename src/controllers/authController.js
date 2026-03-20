@@ -2,11 +2,43 @@ import * as authService from "../services/authService.js";
 import { authState } from "../state/authState.js";
 import { showToast } from "../core/utils/helpers.js";
 import { getUsernameFromToken } from "../core/utils/jwt.js";
+import { APP_CONFIG } from "../core/config/app.config.js";
 
 /**
  * Auth Controller
  * Xử lý business logic cho authentication
  */
+export const loginWithGoogle = async (googleToken) => {
+    try {
+        // 1. Gọi API đến Server thật của bạn
+        const url = `${APP_CONFIG.API_BASE_URL}${APP_CONFIG.API_ENDPOINTS.AUTH.GOOGLE_LOGIN}`;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ token: googleToken }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Đăng nhập Google thất bại");
+        }
+
+        const data = await response.json(); 
+        // Giả sử data trả về dạng: { accessToken: "...", refreshToken: "...", user: {...} }
+
+        // 2. Lưu vào AuthState (Class bạn đã viết)
+        // Việc này giúp toàn bộ App biết user đã login thành công
+        authState.setTokens(data.accessToken, data.refreshToken);
+        authState.setUser(data.user);
+
+        return data;
+    } catch (error) {
+        console.error("Lỗi tại authController:", error);
+        throw error;
+    }
+};
 
 /**
  * Handle login

@@ -7,6 +7,7 @@ export const APP_CONFIG = {
   API_ENDPOINTS: {
     AUTH: {
       LOGIN: "/auth/login",
+      GOOGLE_LOGIN: "/auth/google",
       LOGOUT: "/auth/logout",
       REFRESH_TOKEN: "/auth/refresh-token",
       REGISTER: "/auth/register",

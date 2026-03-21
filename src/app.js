@@ -1,250 +1,143 @@
+
 import { router } from "./core/router/router.js";
 import { authState } from "./state/authState.js";
 import AdminPage from "./views/pages/admin/AdminPage.js";
 import AdminUsersPage from "./views/pages/admin/AdminUsersPage.js";
+import AdminAnalyticsPage from "./views/pages/admin/AdminAnalyticsPage.js";
 
 // Import pages
 import { HomePage } from "./views/pages/user/HomePage.js";
 import { NewFeeds } from "./views/pages/user/NewFeeds.js";
-import { LoginPage } from "./views/pages/user/LoginPage.js";
+import { LoginPage, initLoginPageEvents } from "./views/pages/user/LoginPage.js"; // Gộp import
 import { ProfilePage } from "./views/pages/user/ProfilePage.js";
 import { RegisterPage } from "./views/pages/user/RegisterPage.js";
 import SettingsPage from "./views/pages/user/SettingsPage.js";
 import { UserProfilePage, initUserProfilePageEvents } from "./views/pages/user/UserProfilePage.js";
 import { FriendsListPage } from "./views/pages/user/FriendsListPage.js";
 import { MutualFriendsPage } from "./views/pages/user/MutualFriendsPage.js";
-import AdminAnalyticsPage from "./views/pages/admin/AdminAnalyticsPage.js";
 import visitStatisticsController from "./controllers/visitStatisticsController.js";
-/**
- * Application Bootstrap
- * Entry point của ứng dụng
- */
+import { OAuth2RedirectPage } from './views/pages/OAuth2RedirectPage.js'
 
-// Register routes
+/**
+ * 1. Đăng ký Routes
+ */
 function registerRoutes() {
   // Public routes
-  router.addRoute("/", HomePage, {
-    title: "Trang chủ - Social Network",
-    requiresAuth: false,
+  router.addRoute("/", HomePage, { title: "Trang chủ" });
+  router.addRoute("/newfeeds", NewFeeds, { title: "Dòng thời gian" });
+  router.addRoute("/login", LoginPage, { title: "Đăng nhập" });
+  router.addRoute("/register", RegisterPage, { title: "Đăng ký" });
+
+  // OAuth2 redirect - Quan trọng: Phải khớp với Redirect URI ở Google Console
+  router.addRoute("/oauth2/redirect", OAuth2RedirectPage, { 
+    title: "Đang xác thực Google...",
+    requiresAuth: false 
   });
 
-  router.addRoute("/newfeeds", NewFeeds, {
-    title: "Dòng thời gian - Social Network",
-    requiresAuth: false,
-  });
-
-  router.addRoute("/login", LoginPage, {
-    title: "Đăng nhập - Social Network",
-    requiresAuth: false,
-  });
-
-  router.addRoute("/register", RegisterPage, {
-    title: "Đăng ký - Social Network",
-    requiresAuth: false,
-  });
-
-  router.addRoute("/admin", AdminPage, {
-    title: "Quản lý - Social Network",
-    requiresAuth: true,
-    requiresAdmin: true,
-  });
-
-  router.addRoute("/admin/users", AdminUsersPage, {
-    title: "Quản lý người dùng - Social Network",
-    requiresAuth: true,
-    requiresAdmin: true,
-  });
-
-  router.addRoute("/admin/statistics", AdminAnalyticsPage, {
-    title: "Thống kê người dùng- Social Network",
-    requiresAuth: true,
-    requiresAdmin: true,
-  });
+  // Admin routes
+  router.addRoute("/admin", AdminPage, { title: "Quản lý", requiresAuth: true, requiresAdmin: true });
+  router.addRoute("/admin/users", AdminUsersPage, { title: "Người dùng", requiresAuth: true, requiresAdmin: true });
+  router.addRoute("/admin/statistics", AdminAnalyticsPage, { title: "Thống kê", requiresAuth: true, requiresAdmin: true });
 
   // Protected routes
-  router.addRoute("/profile", ProfilePage, {
-    title: "Trang cá nhân - Social Network",
-    requiresAuth: true,
+  router.addRoute("/profile", ProfilePage, { title: "Trang cá nhân", requiresAuth: true });
+  router.addRoute("/settings", SettingsPage, { title: "Cài đặt", requiresAuth: true });
+  router.addRoute("/friends", async (params) => await FriendsListPage(params), { title: "Bạn bè", requiresAuth: true });
+  
+  router.addRoute("/user-profile/:id", async (params) => await UserProfilePage(params.id), { 
+    title: "Hồ sơ người dùng", 
+    requiresAuth: true 
   });
 
-  router.addRoute(
-    "/user-profile/:id",
-    async (params) => {
-      return await UserProfilePage(params.id);
-    },
-    {
-      title: "Trang cá nhân người dùng - Social Network",
-      requiresAuth: true,
-    },
-  );
-
-  router.addRoute("/settings", SettingsPage, {
-    title: "Cài đặt - Social Network",
-    requiresAuth: true,
+  router.addRoute("/mutual-friends/:id", async (params) => await MutualFriendsPage(params), { 
+    title: "Bạn chung", 
+    requiresAuth: true 
   });
-
-  // Placeholder routes (sẵn sàng mở rộng)
-
-  // danh sách bạn bè
-  router.addRoute(
-    "/friends",
-    async (params) => {
-      return await FriendsListPage(params);
-    },
-    {
-      title: "Danh sách bạn bè",
-      requiresAuth: true,
-    },
-  );
-
-  // bạn chung
-  router.addRoute(
-    "/mutual-friends/:id",
-    async (params) => {
-      return await MutualFriendsPage(params);
-    },
-    {
-      title: "Bạn chung",
-      requiresAuth: true,
-    },
-  );
-
-  router.addRoute(
-    "/messages",
-    async () => {
-      return `
-            <div class="min-h-screen flex items-center justify-center">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Tin nhắn</h1>
-                    <p class="text-gray-600">Tính năng đang phát triển...</p>
-                </div>
-            </div>
-        `;
-    },
-    {
-      title: "Tin nhắn - Social Network",
-      requiresAuth: true,
-    },
-  );
-
-  router.addRoute(
-    "/notifications",
-    async () => {
-      return `
-            <div class="min-h-screen flex items-center justify-center">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Thông báo</h1>
-                    <p class="text-gray-600">Tính năng đang phát triển...</p>
-                </div>
-            </div>
-        `;
-    },
-    {
-      title: "Thông báo - Social Network",
-      requiresAuth: true,
-    },
-  );
 
   console.log("✓ Routes registered");
 }
 
-// Setup navigation guards
+/**
+ * 2. Navigation Guards & Page Initialization
+ */
 function setupNavigationGuards() {
-  // Before each navigation
   router.beforeEach((to, from, next) => {
-    console.log(`Navigating from ${from?.path || "null"} to ${to.path}`);
-
-    // Nếu đã login và cố truy cập trang login, redirect về home
-    if (to.path === "/login" && authState.isAuthenticated()) {
-      console.log("Already authenticated, redirecting to home");
-      next("/");
-      return;
+    // Chặn người dùng đã login vào trang login/register
+    const publicPages = ['/login', '/register'];
+    if (publicPages.includes(to.path) && authState.isAuthenticated()) {
+      return next("/");
     }
-
     next();
   });
 
-  // After each navigation
   router.afterEach((to, from) => {
-    console.log(`Navigated to ${to.path}`);
-
-    // Scroll to top
     window.scrollTo(0, 0);
+    
+    // Ghi nhận lượt truy cập lần đầu
+    if (!from) visitStatisticsController.recordVisit();
 
-    if (from === null) {
-      visitStatisticsController.recordVisit();
-    }
-
-    // Initialize event listeners for user profile page
-    if (to.path && to.path.startsWith("/user-profile/")) {
-      const userId = to.path.split("/").pop();
-      setTimeout(() => {
-        initUserProfilePageEvents(userId);
-      }, 0);
-    }
+    // Khởi tạo Event cho từng trang dựa trên Path
+    initPageEvents(to);
   });
-
-  console.log("✓ Navigation guards setup");
 }
 
-// Setup auth state listener
-function setupAuthListener() {
-  authState.subscribe((state) => {
-    console.log("Auth state changed:", {
-      isAuthenticated: state.isAuthenticated,
-      user: state.user?.username || null,
-    });
+/**
+ * 3. Centralized Page Event Initializer
+ */
+function initPageEvents(route) {
+  setTimeout(() => {
+    const path = route.path;
 
-    // Có thể trigger UI updates tại đây nếu cần
-  });
+    // Trang Login
+    if (path === '/login' && typeof initLoginPageEvents === 'function') {
+      initLoginPageEvents();
+    }
 
-  console.log("✓ Auth listener setup");
+    // Trang User Profile (Dynamic ID)
+    if (path.startsWith('/user-profile/') && typeof initUserProfilePageEvents === 'function') {
+      const userId = path.split("/").pop();
+      initUserProfilePageEvents(userId);
+    }
+    
+    // Thêm các trang khác tại đây...
+  }, 50); // Tăng nhẹ delay để đảm bảo DOM ổn định
 }
 
-// Initialize application
-function initApp() {
-  console.log("🚀 Initializing Social Network App...");
-
-  // Register routes
-  registerRoutes();
-
-  // Setup guards
-  setupNavigationGuards();
-
-  // Setup auth listener
-  setupAuthListener();
-
-  // Initialize router (start listening to hash changes)
-  router.init();
-  // click user link
+/**
+ * 4. Global Event Listeners
+ */
+function setupGlobalListeners() {
+  // Lắng nghe click vào các link profile người dùng (Global Delegate)
   document.addEventListener("click", (e) => {
     const userLink = e.target.closest(".user-link");
-    if (!userLink) return;
-
-    const userId = userLink.dataset.userId;
-    if (userId) {
-      router.navigate(`/user-profile/${userId}`);
+    if (userLink && userLink.dataset.userId) {
+      e.preventDefault();
+      router.navigate(`/user-profile/${userLink.dataset.userId}`);
     }
   });
 
-  console.log("✓ App initialized successfully");
-  console.log("Current auth state:", {
-    isAuthenticated: authState.isAuthenticated(),
-    user: authState.getUser(),
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Promise Rejection:', event.reason);
   });
 }
 
-// Start app when DOM is ready
+/**
+ * Bootstrap App
+ */
+function initApp() {
+  registerRoutes();
+  setupNavigationGuards();
+  
+  // Khởi chạy router
+  router.init();
+  setupGlobalListeners();
+  
+  console.log("✓ Social Network App Ready");
+}
+
+// Khởi động
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);
 } else {
   initApp();
 }
-
-// Export for debugging
-window.__APP__ = {
-  router,
-  authState,
-};
-
-console.log("App debug available at window.__APP__");

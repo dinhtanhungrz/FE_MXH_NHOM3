@@ -1,110 +1,253 @@
 import { Layout } from "../../components/Layout.js";
-import { getMyFriends } from "../../../services/friendService.js";
-import { renderUserLink, renderEmpty } from "../../viewHelpers.js";
+import { 
+  getMyFriends, 
+  getFriendRequests,
+  acceptFriend,
+  rejectFriend
+} from "../../../services/friendService.js";
+import { renderUserLink, renderEmpty } from "../../viewHelpers.js";import { showToast } from "../../../core/utils/helpers.js";
+;
 
-let page = 0;
-let last = false;
-let loading = false;
+let activeTab = "friends";
 
 export async function FriendsListPage() {
-  page = 0;
-  last = false;
-  loading = false;
-
+  injectFriendsStyle();
   setTimeout(init, 0);
 
-  const content = `
+  return Layout(`
     <div class="max-w-6xl mx-auto">
+      <h1 class="text-2xl font-bold mb-6 text-center">Bạn bè</h1>
 
-      <h1 class="text-2xl font-bold mb-6 text-center">
-        Danh sách bạn bè
-      </h1>
+      <div class="flex justify-center gap-4 mb-6">
+        <button id="tabFriends" class="tab-btn active">Danh sách bạn bè</button>
+        <button id="tabRequests" class="tab-btn">Lời mời kết bạn</button>
+      </div>
 
-      <div id="friendsList" class="grid grid-cols-2 gap-4 justify-center"></div>
+      <div id="friendsContainer"></div>
+    </div>
+  `);
+}
 
-      <div id="loading" class="hidden text-center py-4">
-        Loading...
+function init() {
+  document.getElementById("tabFriends").onclick = () => switchTab("friends");
+  document.getElementById("tabRequests").onclick = () => switchTab("requests");
+
+  loadFriends();
+}
+
+async function switchTab(tab) {
+  activeTab = tab;
+
+  document.querySelectorAll(".tab-btn")
+    .forEach(btn => btn.classList.remove("active"));
+
+  document.getElementById(
+    tab === "friends" ? "tabFriends" : "tabRequests"
+  ).classList.add("active");
+
+  if (tab === "friends") {
+    await loadFriends();
+  } else {
+    await loadRequests();
+  }
+}
+async function loadFriends() {
+  const container = document.getElementById("friendsContainer");
+  container.innerHTML = "Loading...";
+
+  try {
+    const res = await getMyFriends(0);
+    const users = res.data.content;
+
+    renderFriends(users);
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = renderEmpty("Lỗi tải dữ liệu");
+  }
+}
+async function loadRequests() {
+  const container = document.getElementById("friendsContainer");
+  container.innerHTML = "Loading...";
+
+  try {
+    const res = await getFriendRequests();
+    const users = res.data;
+
+    renderRequests(users);
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = renderEmpty("Lỗi tải lời mời");
+  }
+}
+function renderFriends(users) {
+  const container = document.getElementById("friendsContainer");
+
+  if (!users?.length) {
+    container.innerHTML = renderEmpty("Bạn chưa có bạn bè nào");
+    return;
+  }
+
+  container.innerHTML = users.map(renderFriendCard).join("");
+}
+function renderRequests(users) {
+  const container = document.getElementById("friendsContainer");
+
+  if (!users?.length) {
+    container.innerHTML = renderEmpty("Không có lời mời nào");
+    return;
+  }
+
+  container.innerHTML = users.map(renderRequestCard).join("");
+}
+function renderFriendCard(u) {
+  const avatar = u.avatarUrl || `https://ui-avatars.com/api/?name=${u.username}`;
+
+  return `
+    <div class="friend-card fade-in">
+      <img src="${avatar}" class="friend-avatar"/>
+
+      <div class="friend-info">
+        ${renderUserLink(u)}
+        <div class="friend-meta">
+          ${u.mutualFriendsCount || 0} bạn chung
+        </div>
+      </div>
+    </div>
+  `;
+}
+function renderRequestCard(u) {
+  const avatar = u.avatarUrl || `https://ui-avatars.com/api/?name=${u.username}`;
+
+  return `
+    <div class="friend-card fade-in">
+
+      <img src="${avatar}" class="friend-avatar"/>
+
+      <div class="friend-info">
+        ${renderUserLink(u)}
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="accept(${u.id})" class="btn btn-accept">
+          Xác nhận
+        </button>
+
+        <button onclick="reject(${u.id})" class="btn btn-reject">
+          Từ chối
+        </button>
       </div>
 
     </div>
   `;
-
-  return Layout(content);
 }
+function injectFriendsStyle() {
+  if (document.getElementById("friends-page-style")) return;
 
-async function init() {
-  await load();
-}
+  const style = document.createElement("style");
+  style.id = "friends-page-style";
 
-async function load() {
-  if (loading || last) return;
-
-  loading = true;
-
-  try {
-    const res = await getMyFriends(page);
-
-    const pageData = res.data;
-
-    if (!pageData) {
-      console.error("API response invalid", res);
-      return;
+  style.textContent = `
+    /* ===== KEYFRAMES ===== */
+    @keyframes fade-in-down {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    render(pageData.content);
+    .fade-in {
+      animation: fade-in-down 0.25s ease-out;
+    }
 
-    last = pageData.last;
+    /* ===== TABS ===== */
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #e4e6eb;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
 
-    page++;
-  } catch (err) {
-    console.error("Load friends error:", err);
-  }
+    .tab-btn:hover {
+      background: #d8dadf;
+    }
 
-  loading = false;
+    .tab-btn.active {
+      background: #1877f2;
+      color: white;
+    }
+
+    /* ===== CARD ===== */
+    .friend-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+
+    .friend-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    }
+
+    .friend-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .friend-info {
+      flex: 1;
+    }
+
+    .friend-meta {
+      font-size: 12px;
+      color: #65676b;
+    }
+
+    /* ===== ACTION BUTTON ===== */
+    .btn {
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-accept {
+      background: #1877f2;
+      color: white;
+    }
+
+    .btn-reject {
+      background: #e4e6eb;
+    }
+  `;
+
+  document.head.appendChild(style);
 }
-
-function render(users) {
-  const container = document.getElementById("friendsList");
-  if (!container) return;
-
-  if (!users || users.length === 0) {
-    container.innerHTML = `
-      <div class="col-span-2 flex flex-col items-center justify-center py-16">
-        ${renderEmpty("Bạn chưa có bạn bè nào")}
-      </div>
-    `;
-    return;
+window.accept = async (id) => {
+  try {
+    await acceptFriend(id);
+    showToast("Đã chấp nhận lời mời");
+    await loadRequests();
+  } catch (err) {
+    console.error(err);
   }
+};
 
-  users.forEach((u) => {
-    const avatar = u.avatarUrl || `https://ui-avatars.com/api/?name=${u.username}`;
-
-    const mutualFriendsCount = u.mutualFriendsCount || 0;
-
-    container.insertAdjacentHTML(
-      "beforeend",
-      `
-
-      <div class="bg-white rounded-lg shadow hover:shadow-md transition overflow-hidden">
-
-        <div class="p-4 flex items-center gap-3">
-
-          <img src="${avatar}" 
-          class="w-16 h-16 rounded-full object-cover flex-shrink-0"/>
-
-          <div class="flex-1 min-w-0">
-            ${renderUserLink(u, "text-base")}
-            
-            <div class="mt-1 text-gray-600 text-xs">
-              <p><span class="font-semibold text-gray-800">${mutualFriendsCount}</span> bạn chung</p>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-    `,
-    );
-  });
+window.reject = async (id) => {
+  try {
+    await rejectFriend(id);
+    showToast("Đã từ chối lời mời");
+    await loadRequests();
+  } catch (err) {
+    console.error(err);
+  }
 }

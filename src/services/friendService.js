@@ -46,3 +46,6 @@ export function rejectFriend(userId) {
 export function unfriend(userId) {
   return apiClient.delete(`/users/unfriend/${userId}`);
 }
+export function getFriendSuggestions(page = 0, size = 5) {
+  return apiClient.get("/users/suggestions");
+}

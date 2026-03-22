@@ -5,7 +5,8 @@ import {
   acceptFriend,
   rejectFriend
 } from "../../../services/friendService.js";
-import { renderUserLink, renderEmpty } from "../../viewHelpers.js";;
+import { renderUserLink, renderEmpty } from "../../viewHelpers.js";import { showToast } from "../../../core/utils/helpers.js";
+;
 
 let activeTab = "friends";
 
@@ -234,6 +235,7 @@ function injectFriendsStyle() {
 window.accept = async (id) => {
   try {
     await acceptFriend(id);
+    showToast("Đã chấp nhận lời mời");
     await loadRequests();
   } catch (err) {
     console.error(err);
@@ -243,6 +245,7 @@ window.accept = async (id) => {
 window.reject = async (id) => {
   try {
     await rejectFriend(id);
+    showToast("Đã từ chối lời mời");
     await loadRequests();
   } catch (err) {
     console.error(err);

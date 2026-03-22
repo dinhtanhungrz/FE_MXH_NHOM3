@@ -27,7 +27,8 @@ export const APP_CONFIG = {
       REJECT_REQUEST: "/users/friend-request/reject/",        // DELETE /reject/{id}
       UNFRIEND: "/users/unfriend/",
       FRIEND_REQUESTS: "/users/friend-requests",      // GET
-      FRIENDS: "/users/friends"
+      FRIENDS: "/users/friends",
+      SUGGESTIONS: "/users/suggestions",
     },
 
     FRIEND: {

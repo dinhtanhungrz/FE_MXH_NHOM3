@@ -20,11 +20,15 @@ export const APP_CONFIG = {
       AVATAR: "/users/update-avatar",
       PASSWORD: "/users/password",
       BLOCK: "/users/block",
-      FRIEND_REQUEST: "/users/friend-request/", // + userId
-      CANCEL_REQUEST: "/users/cancel-request/", // + userId
-      ACCEPT_REQUEST: "/users/friend-request/accept/", // + userId
-      REJECT_REQUEST: "/users/friend-request/reject/", // + userId
-      UNFRIEND: "/users/unfriend/", // + userId
+       // 🔥 FRIEND FLOW (FIXED)
+      FRIEND_REQUEST: "/users/friend-request/",        // POST /{id}
+      CANCEL_REQUEST: "/users/cancel-request/",        // DELETE /{id}
+      ACCEPT_REQUEST: "/users/friend-request/",        // POST /{id}/accept
+      REJECT_REQUEST: "/users/friend-request/reject/",        // DELETE /reject/{id}
+      UNFRIEND: "/users/unfriend/",
+      FRIEND_REQUESTS: "/users/friend-requests",      // GET
+      FRIENDS: "/users/friends",
+      SUGGESTIONS: "/users/suggestions",
     },
 
     FRIEND: {

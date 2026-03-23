@@ -1,5 +1,4 @@
 import { APP_CONFIG } from '../config/app.config.js';
-
 /**
  * API Endpoints Helper
  * Cung cấp các hàm tiện ích để build API URLs
@@ -65,14 +64,33 @@ export const commentEndpoints = {
     list: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.LIST, { postId }),
     create: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.CREATE, { postId }),
     delete: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.DELETE, { id: commentId }),
+    like: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.LIKE, { id: commentId }),
+    reply: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.REPLY, { id: commentId }),
 };
+
+/**
+ * Chat endpoints
+ */
+export const chatEndpoints = {
+    groups: () => APP_CONFIG.API_ENDPOINTS.CHAT.GROUPS,
+    detail: (groupId) => replaceParams(APP_CONFIG.API_ENDPOINTS.CHAT.DETAIL, { groupId }),
+    members: (groupId) => replaceParams(APP_CONFIG.API_ENDPOINTS.CHAT.MEMBERS, { groupId }),
+    messages: () => APP_CONFIG.API_ENDPOINTS.CHAT.MESSAGES,
+    groupMessages: (groupId) => replaceParams(APP_CONFIG.API_ENDPOINTS.CHAT.GROUP_MESSAGES, { groupId }),
+};
+
 
 /**
  * Like endpoints (sẵn sàng mở rộng)
  */
 export const likeEndpoints = {
-    like: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.LIKE, { postId }),
-    unlike: (postId) => replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.UNLIKE, { postId }),
+
+    like: (statusId) =>
+        replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.STATUS,{statusId}),
+    unlike: (statusId) =>
+        replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.STATUS,{statusId}),
+    getStatus: (statusId) =>
+        replaceParams(APP_CONFIG.API_ENDPOINTS.LIKE.STATUS, { statusId }),
 };
 
 /**
@@ -90,6 +108,7 @@ export default {
     user: userEndpoints,
     post: postEndpoints,
     comment: commentEndpoints,
+    chat: chatEndpoints,
     like: likeEndpoints,
     follow: followEndpoints,
 };

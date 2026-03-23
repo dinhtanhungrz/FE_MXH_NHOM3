@@ -1,6 +1,6 @@
-import * as authController from "../../controllers/authController.js";
-import { router } from "../../core/router/router.js";
-import { showLoading, hideLoading, showToast } from "../../core/utils/helpers.js";
+import * as authController from "../../../controllers/authController.js";
+import { router } from "../../../core/router/router.js";
+import { showLoading, hideLoading, showToast } from "../../../core/utils/helpers.js";
 
 /**
  * Register Page
@@ -242,6 +242,22 @@ function setupRegisterHandlers() {
     const terms = document.getElementById("terms").checked;
 
     if (!username || !email || !password || !confirmPassword || !terms) {
+      return;
+    }
+
+    // basic client-side validation
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      showToast("Username phải gồm 3-20 ký tự chữ, số hoặc gạch dưới", "error");
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      showToast("Email không hợp lệ", "error");
+      return;
+    }
+
+    if (password.length < 6) {
+      showToast("Mật khẩu phải có ít nhất 6 ký tự", "error");
       return;
     }
 

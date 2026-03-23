@@ -1,4 +1,4 @@
-import { AdminLayout } from "../components/AdminLayout.js";
+import { AdminLayout } from "../../components/AdminLayout.js";
 
 /**
  * Admin Page

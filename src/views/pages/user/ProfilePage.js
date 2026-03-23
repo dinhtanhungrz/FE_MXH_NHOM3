@@ -1,7 +1,16 @@
-import { Layout } from "../components/Layout.js";
-import * as userController from "../../controllers/userController.js";
-import * as userService from "../../services/userService.js";
-import { showLoading, hideLoading, formatDate, showToast } from "../../core/utils/helpers.js";
+import { Layout } from "../../components/Layout.js";
+import * as userController from "../../../controllers/userController.js";
+import {
+  showLoading,
+  hideLoading,
+  formatDate,
+  showToast,
+  formatRelativeTime,
+  refreshUserDisplay,
+} from "../../../core/utils/helpers.js";
+import postController from "../../../controllers/postController.js";
+import authState from "../../../state/authState.js";
+import { renderPostCard, setupPostEventHandlers } from "../../components/PostCard.js";
 
 /**
  * Profile Page
@@ -11,6 +20,7 @@ export const ProfilePage = async () => {
 
   // Load user data
   const user = await userController.loadCurrentUser();
+  const statuses = await postController.getProfilePosts();
 
   hideLoading();
 
@@ -39,7 +49,7 @@ export const ProfilePage = async () => {
                                 alt="${user.username}"
                                 class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-xl object-cover"
                             />
-                            <button class="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition">
+                            <button id="openAvatarCropperBtn" class="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition" title="Chỉnh sửa ảnh đại diện">
                                 <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -54,24 +64,13 @@ export const ProfilePage = async () => {
                                 <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
                                     ${user.fullName || user.username}
                                 </h1>
-                                <p class="text-lg text-gray-500 mt-2 font-medium">@${user.username}</p>
+                                <p class="text-lg text-gray-300 mt-2 font-medium">@${user.username}</p>
                             </div>
-                            
-                            <!-- Bio Section -->
-                            ${
-                              user.bio
-                                ? `
-                                <p class="text-gray-700 mt-4 text-base leading-relaxed max-w-3xl">
-                                    ${user.bio}
-                                </p>
-                            `
-                                : ""
-                            }
 
                             <!-- Stats -->
                             <div class="flex gap-8 mt-6">
                                 <div>
-                                    <p class="text-3xl font-bold text-gray-900">${user.postsCount || 0}</p>
+                                    <p class="text-3xl font-bold text-gray-900" id="postCount">${statuses.length || 0}</p>
                                     <p class="text-sm text-gray-600 mt-1 font-medium">Bài viết</p>
                                 </div>
                                 <div>
@@ -174,11 +173,11 @@ export const ProfilePage = async () => {
                         <div class="bg-gray-50 rounded-xl p-4 mb-6">
                             <div class="flex space-x-3">
                                 <img 
-                                    src="${user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=3b82f6&color=fff`}"
+                                    src="${user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=3b82f6&color=fff`}"
                                     alt="${user.username}"
                                     class="w-10 h-10 rounded-full object-cover"
                                 />
-                                <button class="flex-1 text-left px-4 py-3 bg-white rounded-full text-gray-500 hover:bg-gray-100 transition">
+                                <button id="openCreatePostBtn" class="flex-1 text-left px-4 py-3 bg-white rounded-full text-gray-500 hover:bg-gray-100 transition">
                                     Bạn đang nghĩ gì?
                                 </button>
                             </div>
@@ -199,12 +198,8 @@ export const ProfilePage = async () => {
                         </div>
 
                         <!-- Posts List -->
-                        <div class="text-center py-12 text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <p class="text-lg font-medium">Chưa có bài viết nào</p>
-                            <p class="text-sm mt-2">Bắt đầu chia sẻ khoảnh khắc của bạn!</p>
+                        <div id="postsList" class="space-y-4">
+                            ${renderPosts(statuses || [])}
                         </div>
                     </div>
                 </div>
@@ -330,6 +325,83 @@ export const ProfilePage = async () => {
                 </form>
             </div>
         </div>
+
+        <!-- Avatar Cropper Modal -->
+        <div id="avatarCropperModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <!-- Modal Header -->
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-900">Chỉnh sửa ảnh đại diện</h2>
+                    <button id="closeCropperModal" class="text-gray-500 hover:text-gray-700 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <!-- File Input -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Chọn ảnh</label>
+                            <input 
+                                type="file" 
+                                id="cropperImageInput" 
+                                accept="image/*"
+                                class="w-full text-sm file:px-4 file:py-2 file:text-sm file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition"
+                            />
+                        </div>
+
+                        <!-- Image Container for Cropper -->
+                        <div id="cropperImageContainer" class="hidden">
+                            <div class="bg-gray-50 rounded-lg " style="max-height: 300px;">
+                                <img 
+                                    id="cropperImage" 
+                                    src="" 
+                                    alt="Image to crop"
+                                    class="max-w-full"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div id="cropperPreviewContainer" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Xem trước</label>
+                            <div class="flex justify-center">
+                                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-200 bg-gray-100">
+                                    <img 
+                                        id="cropperPreview" 
+                                        src="" 
+                                        alt="Cropped preview"
+                                        class="w-full h-full object-cover"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex gap-2">
+                    <button 
+                        type="button" 
+                        id="cancelCropperBtn" 
+                        class="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
+                    >
+                        Hủy
+                    </button>
+                    <button 
+                        type="button" 
+                        id="saveCropperBtn" 
+                        class="flex-1 px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled
+                    >
+                        Lưu
+                    </button>
+                </div>
+            </div>
+        </div>
     `;
 
   const layoutContent = Layout(content);
@@ -337,9 +409,36 @@ export const ProfilePage = async () => {
   // Thiết lập event listeners sau khi DOM được render
   setTimeout(() => {
     setupEditProfileModal(user);
+    setupAvatarCropper();
+    const postsList = document.getElementById("postsList");
+    if (postsList) {
+      attachPostsListListeners(postsList);
+    }
+    initializeCreatePost();
   }, 100);
 
   return layoutContent;
+};
+
+/**
+ * Render Posts
+ * @param {Array} posts - Array of post objects from API
+ * @returns {string} HTML string of rendered posts
+ */
+const renderPosts = (posts) => {
+  if (!posts || posts.length === 0) {
+    return `
+      <div class="text-center py-12 text-gray-500">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <p class="text-lg font-medium">Chưa có bài viết nào</p>
+        <p class="text-sm mt-2">Bắt đầu chia sẻ khoảnh khắc của bạn!</p>
+      </div>
+    `;
+  }
+
+  return posts.map((post) => renderPostCard(post)).join("");
 };
 
 /**
@@ -347,10 +446,10 @@ export const ProfilePage = async () => {
  * @param {string} str - String to validate
  * @returns {boolean} True if no special characters
  */
-function validateNoSpecialCharacters(str) {
+const validateNoSpecialCharacters = (str) => {
   const specialCharRegex = /[!@#$%^&*()_+=\[\]{};':"\\|,.<>\/?]/g;
   return !specialCharRegex.test(str);
-}
+};
 
 /**
  * Handle Update Profile
@@ -368,8 +467,12 @@ const handleUpdateProfile = async (formData) => {
       await userController.loadCurrentUser();
 
       hideLoading();
+      showToast("Cập nhật profile thành công", "success");
 
-      // Reload trang để cập nhật Header, Sidebar và thông tin user
+      // Re-render header, sidebar với dữ liệu mới
+      await refreshUserDisplay();
+
+      // Reload trang sau 1 giây để cập nhật hoàn toàn
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -385,9 +488,9 @@ const handleUpdateProfile = async (formData) => {
 
 /**
  * Setup Edit Profile Modal
- * @param {Object} user - Current user data
+ *
  */
-function setupEditProfileModal(user) {
+const setupEditProfileModal = () => {
   const editBtn = document.getElementById("editProfileBtn");
   const modal = document.getElementById("editProfileModal");
   const closeBtn = document.getElementById("closeEditModal");
@@ -514,6 +617,451 @@ function setupEditProfileModal(user) {
     modal.classList.add("hidden");
     document.body.style.overflow = "";
   }
-}
+};
+
+/**
+ * Setup Post Actions
+ * Initialize event listeners for post interactions
+ */
+// setupPostActions removed as it's replaced by setupPostEventHandlers from PostCard.js
+
+/**
+ * Initialize Create Post Modal
+ */
+const initializeCreatePost = () => {
+  const openBtn = document.getElementById("openCreatePostBtn");
+
+  if (!openBtn) return;
+
+  openBtn.addEventListener("click", () => {
+    // Nếu modal chưa tồn tại thì append vào body
+    let modal = document.getElementById("createPostModal");
+
+    if (!modal) {
+      document.body.insertAdjacentHTML("beforeend", CreatePostModal());
+
+      initializePostModal(); // gắn event close, submit...
+    }
+
+    // Hiển thị modal
+    const modalElement = document.getElementById("createPostModal");
+    modalElement.classList.remove("hidden");
+    modalElement.classList.add("flex"); // nếu modal dùng flex để center
+  });
+};
+
+/**
+ * Create Post Modal HTML
+ */
+const CreatePostModal = () => {
+  const user = {
+    username:
+      document
+        .querySelector(".text-lg.text-gray-500.mt-2.font-medium")
+        ?.textContent?.replace("@", "") || "User",
+    avatarUrl:
+      document.querySelector("img[alt][class*='rounded-full']")?.src ||
+      `https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff`,
+  };
+
+  return `
+    <div 
+      id="createPostModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl animate-fadeIn">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900">Tạo bài viết</h2>
+          <button 
+            id="closeCreatePostModal"
+            class="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="px-6 py-4">
+          <div class="flex items-center space-x-3 mb-4">
+            <img 
+              id="createPostAvatar"
+              src="${user.avatarUrl}"
+              class="w-12 h-12 rounded-full object-cover"
+            />
+            <div>
+              <p id="createPostUsername" class="font-semibold text-gray-900">
+                ${user.username}
+              </p>
+              <select 
+                id="postPrivacy"
+                class="text-sm bg-gray-100 rounded-lg px-2 py-1 mt-1 outline-none"
+              >
+                <option value="PUBLIC">🌍 Công khai</option>
+                <option value="FRIENDS_ONLY">👥 Bạn bè</option>
+                <option value="ONLY_ME">🔒 Chỉ mình tôi</option>
+              </select>
+            </div>
+          </div>
+
+          <textarea
+            id="postContent"
+            rows="4"
+            placeholder="Bạn đang nghĩ gì?"
+            class="w-full resize-none text-lg outline-none placeholder-gray-400"
+          ></textarea>
+
+          <!-- Preview Image -->
+            <div id="postImagePreviewWrapper" 
+                class="mt-4 hidden grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 space-y-4">
+          
+          <div class="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3">
+            <span class="font-medium text-gray-700">Thêm vào bài viết</span>
+            <div class="flex items-center space-x-3">
+              
+              <label class="cursor-pointer">
+                <input 
+                  type="file" 
+                  id="postImageInput" 
+                  multiple
+                  accept="image/*,video/*"
+                  class="hidden"
+                />
+                <svg class="w-6 h-6 text-green-500 hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                  </path>
+                </svg>
+              </label>
+
+              <button id="addFeelingBtn">
+                <svg class="w-6 h-6 text-yellow-500 hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                  </path>
+                </svg>
+              </button>
+
+            </div>
+          </div>
+
+          <button
+            id="submitPostBtn"
+            class="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition disabled:opacity-50"
+            disabled
+          >
+            Đăng
+          </button>
+
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+/**
+ * Initialize Post Modal Event Listeners
+ */
+const initializePostModal = () => {
+  const modal = document.getElementById("createPostModal");
+  if (!modal) return;
+
+  const closeBtn = document.getElementById("closeCreatePostModal");
+  const contentInput = document.getElementById("postContent");
+  const submitBtn = document.getElementById("submitPostBtn");
+  const imageInput = document.getElementById("postImageInput");
+  const previewWrapper = document.getElementById("postImagePreviewWrapper");
+
+  // ===== CLOSE MODAL FUNCTION =====
+  const closeModal = () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+    // reset form
+    contentInput.value = "";
+    imageInput.value = "";
+    previewWrapper.classList.add("hidden");
+    submitBtn.disabled = true;
+  };
+
+  // ===== ENABLE/DISABLE SUBMIT =====
+  const toggleSubmitState = () => {
+    const hasText = contentInput.value.trim().length > 0;
+    const hasImage = imageInput.files && imageInput.files.length > 0;
+
+    submitBtn.disabled = !(hasText || hasImage);
+  };
+
+  // ===== EVENTS =====
+
+  // Close button
+  closeBtn.addEventListener("click", closeModal);
+
+  // Click overlay để đóng
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Text input
+  contentInput.addEventListener("input", toggleSubmitState);
+
+  imageInput.addEventListener("change", () => {
+    const files = Array.from(imageInput.files || []);
+
+    // Clear preview cũ
+    previewWrapper.innerHTML = "";
+
+    if (files.length === 0) {
+      previewWrapper.classList.add("hidden");
+      toggleSubmitState();
+      return;
+    }
+
+    previewWrapper.classList.remove("hidden");
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const url = e.target.result;
+
+        let element;
+
+        if (file.type.startsWith("image/")) {
+          element = document.createElement("img");
+          element.src = url;
+          element.className = "w-full h-40 object-cover rounded-lg";
+        } else if (file.type.startsWith("video/")) {
+          element = document.createElement("video");
+          element.src = url;
+          element.controls = true;
+          element.className = "w-full h-40 object-cover rounded-lg";
+        }
+
+        previewWrapper.appendChild(element);
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    toggleSubmitState();
+  });
+
+  submitBtn.addEventListener("click", async () => {
+    const content = contentInput.value.trim();
+    const visibility = document.getElementById("postPrivacy").value;
+    const files = Array.from(imageInput.files || []);
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Đang đăng bài...";
+
+      await postController.createNewPost(content, visibility, files);
+
+      closeModal();
+      refreshStatuses();
+    } catch (error) {
+      console.error(error);
+      alert("Có lỗi xảy ra khi đăng bài");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Đăng";
+    }
+  });
+};
+
+const attachPostsListListeners = (postsList) => {
+  setupPostEventHandlers(postsList);
+
+  // Dùng { once: false } mặc định nhưng cần tránh duplicate listener
+  // → clone node để xóa hết listener cũ trước khi gắn mới
+  const fresh = postsList.cloneNode(true);
+  postsList.parentNode.replaceChild(fresh, postsList);
+
+  setupPostEventHandlers(fresh);
+
+  fresh.addEventListener("postUpdated", async () => {
+    await refreshStatuses();
+  });
+
+  fresh.addEventListener("postDeleted", () => {
+    const remaining = fresh.querySelectorAll("article[data-post-id]").length;
+    const postCountEl = document.getElementById("postCount");
+    if (postCountEl) postCountEl.textContent = remaining;
+  });
+};
+
+const refreshStatuses = async () => {
+  try {
+    const statuses = await postController.getProfilePosts();
+    const postsList = document.getElementById("postsList");
+    if (postsList) {
+      postsList.innerHTML = renderPosts(statuses);
+      attachPostsListListeners(postsList);
+    }
+  } catch (error) {
+    console.error("Failed to fetch user statuses:", error);
+  }
+};
+
+/**
+ * Setup Avatar Cropper Modal
+ * Initialize image cropping functionality with Cropper.js
+ */
+const setupAvatarCropper = () => {
+  const openBtn = document.getElementById("openAvatarCropperBtn");
+  const modal = document.getElementById("avatarCropperModal");
+  const closeBtn = document.getElementById("closeCropperModal");
+  const cancelBtn = document.getElementById("cancelCropperBtn");
+  const saveBtn = document.getElementById("saveCropperBtn");
+  const fileInput = document.getElementById("cropperImageInput");
+  const imageContainer = document.getElementById("cropperImageContainer");
+  const image = document.getElementById("cropperImage");
+  const previewContainer = document.getElementById("cropperPreviewContainer");
+  const preview = document.getElementById("cropperPreview");
+
+  if (!openBtn || !modal) return;
+
+  let cropper = null;
+
+  // Mở modal
+  openBtn.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  });
+
+  // Đóng modal
+  const closeModal = () => {
+    modal.classList.add("hidden");
+    document.body.style.overflow = "";
+
+    // Reset
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    fileInput.value = "";
+    imageContainer.classList.add("hidden");
+    previewContainer.classList.add("hidden");
+    saveBtn.disabled = true;
+  };
+
+  closeBtn?.addEventListener("click", closeModal);
+  cancelBtn?.addEventListener("click", closeModal);
+
+  // Click ngoài modal để đóng
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Xử lý chọn file
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      image.src = event.target.result;
+      imageContainer.classList.remove("hidden");
+      previewContainer.classList.remove("hidden");
+      saveBtn.disabled = false;
+
+      // Destroy cropper cũ nếu tồn tại
+      if (cropper) {
+        cropper.destroy();
+      }
+
+      // Khởi tạo Cropper.js
+      setTimeout(() => {
+        cropper = new Cropper(image, {
+          aspectRatio: 1, // Hình vuông
+          viewMode: 1,
+          autoCropArea: 1,
+          responsive: true,
+          restore: true,
+          guides: true,
+          center: true,
+          highlight: true,
+          cropBoxMovable: false,
+          cropBoxResizable: false,
+          toggleDragModeOnDblclick: true,
+          movable: true,
+          dragMode: "move",
+          // Hàm cập nhật preview
+          crop() {
+            if (!cropper) return;
+
+            const canvas = cropper.getCroppedCanvas();
+            preview.src = canvas.toDataURL();
+          },
+        });
+
+        // Trigger crop event to show initial preview
+        if (cropper) {
+          cropper.crop();
+        }
+      }, 100);
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  // Lưu ảnh đã cắt
+  saveBtn.addEventListener("click", async () => {
+    if (!cropper) {
+      showToast("Vui lòng chọn ảnh", "error");
+      return;
+    }
+
+    try {
+      saveBtn.disabled = true;
+      saveBtn.innerText = "Đang lưu...";
+
+      const canvas = cropper.getCroppedCanvas();
+
+      // Convert canvas to blob
+      canvas.toBlob(
+        async (blob) => {
+          const file = new File([blob], "avatar.png", { type: "image/png" });
+          try {
+            const response = await userController.updateAvatar(file);
+
+            if (response) {
+              showToast("Cập nhật ảnh đại diện thành công", "success");
+              closeModal();
+
+              await refreshUserDisplay(); // Reload header, sidebar với avatar mới
+            } else {
+              showToast("Cập nhật ảnh thất bại", "error");
+              saveBtn.disabled = false;
+              saveBtn.innerText = "Lưu";
+            }
+          } catch (error) {
+            showToast(error.message || "Lỗi khi cập nhật ảnh", "error");
+            saveBtn.disabled = false;
+            saveBtn.innerText = "Lưu";
+          }
+        },
+        "image/png",
+        0.95,
+      );
+    } catch (error) {
+      showToast("Lỗi: " + error.message, "error");
+      saveBtn.disabled = false;
+      saveBtn.innerText = "Lưu";
+    }
+  });
+};
 
 export default ProfilePage;

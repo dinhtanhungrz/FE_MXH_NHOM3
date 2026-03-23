@@ -42,7 +42,11 @@ const onTokenRefreshed = (token) => {
  */
 apiClient.interceptors.request.use(
   (config) => {
-    const token = authState.getAccessToken();
+    // Try get token from authState, fallback to localStorage
+    let token = authState.getAccessToken && authState.getAccessToken();
+    if (!token) {
+      token = localStorage.getItem("accessToken") || localStorage.getItem("token");
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

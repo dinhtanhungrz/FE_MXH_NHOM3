@@ -187,6 +187,13 @@ function setupHandlerHeader() {
     });
   }
 
+  const messagesBtn = document.getElementById("messages-btn");
+  if (messagesBtn) {
+    messagesBtn.addEventListener("click", () => {
+      router.navigate("/messages");
+    });
+  }
+
   // Add animation styles
   addHeaderAnimationStyles();
 }

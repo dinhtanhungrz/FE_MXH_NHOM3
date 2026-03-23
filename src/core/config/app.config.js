@@ -45,6 +45,13 @@ export const APP_CONFIG = {
       BASE: "/comments",
       STATUS: "/comments/status/", // + statusId
     },
+    CHAT: {
+      GROUPS: "/chat-groups",
+      DETAIL: "/chat-groups/:groupId",
+      MEMBERS: "/chat-groups/:groupId/members",
+      MESSAGES: "/messages",
+      GROUP_MESSAGES: "/messages/group/:groupId",
+    },
     // Like endpoints
     LIKE: {
       BASE: "/status-like",

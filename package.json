@@ -19,8 +19,10 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "axios": "^1.6.0",
-    "cropperjs": "^2.1.0"
+    "cropperjs": "^2.1.0",
+    "sockjs-client": "^1.6.1"
   },
   "engines": {
     "node": ">=14.0.0"

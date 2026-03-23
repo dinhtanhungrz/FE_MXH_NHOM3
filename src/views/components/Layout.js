@@ -1,7 +1,7 @@
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { authState } from '../../state/authState.js';
-
+import { NotificationBell } from "./NotificationBell.js";
 /**
  * Main Layout Component
  * Bao gồm Header, Sidebar và Content area

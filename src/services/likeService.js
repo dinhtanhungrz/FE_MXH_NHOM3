@@ -1,12 +1,14 @@
 import apiClient from "../core/api/apiClient.js";
 import { likeEndpoints } from "../core/api/endpoints.js";
 
-export function likeStatus(statusId) {
-  return apiClient.post(likeEndpoints.like(statusId));
+export async function likeStatus(statusId) {
+  const res = await apiClient.post(likeEndpoints.like(statusId));
+  return res.data;
 }
 
-export function unlikeStatus(statusId) {
-  return apiClient.delete(likeEndpoints.unlike(statusId));
+export async function unlikeStatus(statusId) {
+  const res = await apiClient.delete(likeEndpoints.unlike(statusId));
+  return res.data;
 }
 
 export function getLikeStatus(statusId) {

@@ -383,32 +383,40 @@ export const setupPostEventHandlers = (container) => {
     // ── Like ──────────────────────────────────────────────────────────────
     const likeBtn = postElement.querySelector(".btn-like");
     if (likeBtn) {
-      likeBtn.addEventListener("click", async () => {
-        const liked = likeBtn.dataset.liked === "true";
-        const likeCountEl = postElement.querySelector(".btn-like-stat span");
+      let isProcessing = false;
+       likeBtn.addEventListener("click", async () => {
+    if (isProcessing) return;
+    isProcessing = true;
 
-        try {
-          if (liked) {
-            await unlikeStatus(postId);
-            likeBtn.dataset.liked = "false";
-            likeBtn.classList.remove("text-blue-600");
-            likeBtn.classList.add("text-gray-600");
-            likeCountEl.textContent = Number(likeCountEl.textContent) - 1;
-          } else {
-            await likeStatus(postId);
-            likeBtn.dataset.liked = "true";
-            likeBtn.classList.add("text-blue-600");
-            likeBtn.classList.remove("text-gray-600");
-            likeCountEl.textContent = Number(likeCountEl.textContent) + 1;
-          }
-        } catch (error) {
-          console.error(error);
-          alert("Like thất bại");
-        }
-      });
+    try {
+      const liked = likeBtn.dataset.liked === "true";
+      const likeCountEl = postElement.querySelector(".btn-like-stat span");
+      const res = liked        ? await unlikeStatus(postId)
+        : await likeStatus(postId);
+      if (likeCountEl) {
+        likeCountEl.textContent = res.likesCount;
+      }
+      
+
+      likeBtn.dataset.liked = String(res.like);
+      likeCountEl.textContent = res.likesCount;
+
+      if (res.like) {
+        likeBtn.classList.add("text-blue-600");
+        likeBtn.classList.remove("text-gray-600");
+      } else {
+        likeBtn.classList.remove("text-blue-600");
+        likeBtn.classList.add("text-gray-600");
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Like thất bại");
+    } finally {
+      isProcessing = false;
     }
-
-    // ── Share ─────────────────────────────────────────────────────────────
+  });
+    }
     postElement
       .querySelector(".btn-share")
       ?.addEventListener("click", () => alert("Tính năng chia sẻ đang được phát triển"));

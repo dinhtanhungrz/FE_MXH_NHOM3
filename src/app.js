@@ -4,6 +4,7 @@ import { authState } from "./state/authState.js";
 import AdminPage from "./views/pages/admin/AdminPage.js";
 import AdminUsersPage from "./views/pages/admin/AdminUsersPage.js";
 import AdminAnalyticsPage from "./views/pages/admin/AdminAnalyticsPage.js";
+import { setupNotification } from "./views/components/setupNotification.js";
 
 // Import pages
 import { HomePage } from "./views/pages/user/HomePage.js";
@@ -17,6 +18,7 @@ import { FriendsListPage } from "./views/pages/user/FriendsListPage.js";
 import { MutualFriendsPage } from "./views/pages/user/MutualFriendsPage.js";
 import visitStatisticsController from "./controllers/visitStatisticsController.js";
 import { OAuth2RedirectPage } from './views/pages/OAuth2RedirectPage.js'
+import NotificationsPage from "./views/pages/user/NotificationsPage.js";
 
 /**
  * 1. Đăng ký Routes
@@ -43,11 +45,11 @@ function registerRoutes() {
   router.addRoute("/profile", ProfilePage, { title: "Trang cá nhân", requiresAuth: true });
   router.addRoute("/settings", SettingsPage, { title: "Cài đặt", requiresAuth: true });
   router.addRoute("/friends", async (params) => await FriendsListPage(params), { title: "Bạn bè", requiresAuth: true });
-  
   router.addRoute("/user-profile/:id", async (params) => await UserProfilePage(params.id), { 
     title: "Hồ sơ người dùng", 
     requiresAuth: true 
   });
+  router.addRoute("/notifications", NotificationsPage, {title: "Thông báo",requiresAuth: true});
 
   router.addRoute("/mutual-friends/:id", async (params) => await MutualFriendsPage(params), { 
     title: "Bạn chung", 
@@ -80,7 +82,7 @@ function setupNavigationGuards() {
     initPageEvents(to);
   });
 }
-
+  let notificationInitialized = false;
 /**
  * 3. Centralized Page Event Initializer
  */
@@ -100,6 +102,11 @@ function initPageEvents(route) {
     }
     
     // Thêm các trang khác tại đây...
+    // Khởi tạo Notification trên tất cả trang (chỉ 1 lần)
+    const btn = document.getElementById("notificationBtn");
+    if (btn) {
+      setupNotification();
+    }
   }, 50); // Tăng nhẹ delay để đảm bảo DOM ổn định
 }
 

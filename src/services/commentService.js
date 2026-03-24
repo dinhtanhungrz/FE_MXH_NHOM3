@@ -23,7 +23,7 @@ export const updateComment = async (id, content) => {
   const response = await apiClient.put(`${APP_CONFIG.API_ENDPOINTS.COMMENT.BASE}/${id}`, {
     content,
   });
-  return response.data;
+  return response;
 };
 
 export const deleteComment = async (id) => {

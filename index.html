@@ -35,6 +35,26 @@
       };
     </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      // Global error handler for debugging blank page issues
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        console.error('Global Error:', msg, 'at', url, ':', lineNo);
+        const app = document.getElementById('app');
+        if (app && !app.innerHTML.trim()) {
+           app.innerHTML = `
+            <div class="p-8 text-center">
+              <h1 class="text-xl font-bold text-red-600">Lỗi loading ứng dụng</h1>
+              <p class="text-gray-600 mt-2">${msg}</p>
+              <p class="text-xs text-gray-400 mt-4">${url}:${lineNo}</p>
+            </div>
+           `;
+        }
+        return false;
+      };
+      window.onunhandledrejection = function(event) {
+        console.error('Unhandled Promise Rejection:', event.reason);
+      };
+    </script>
     <style>
       /* Custom scrollbar */
       ::-webkit-scrollbar {
@@ -49,6 +69,45 @@
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+      }
+
+      /* Highlight animation for notifications */
+      @keyframes highlight-fade {
+        0% { background-color: rgba(59, 130, 246, 0.2); }
+        100% { background-color: transparent; }
+      }
+      .highlight-notification {
+        animation: highlight-fade 3s ease-in-out;
+        border-radius: 0.5rem;
+      }
+
+      /* Transitions & Animations */
+      @keyframes slide-down {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes scale-up {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+      }
+      
+      .animate-slide-down {
+        animation: slide-down 0.25s cubic-bezier(0, 0, 0.2, 1) forwards;
+      }
+      .animate-fade-in {
+        animation: fade-in 0.2s ease-out forwards;
+      }
+      .animate-scale-up {
+        animation: scale-up 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      
+      .comment-bubble-transition {
+        transition: background-color 0.2s ease, transform 0.1s ease;
       }
     </style>
   </head>

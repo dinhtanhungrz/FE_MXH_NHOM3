@@ -1,19 +1,21 @@
 // services/notificationService.js
+import apiClient from "../core/api/apiClient.js";
 import { APP_CONFIG } from "../core/config/app.config.js";
 
-const api = axios.create({
-  baseURL: APP_CONFIG.API_BASE_URL,
-  timeout: APP_CONFIG.TIMEOUT,
-});
+const { NOTIFICATION } = APP_CONFIG.API_ENDPOINTS;
 
 export const getNotificationsApi = () => {
-  return api.get("/notifications");
+  return apiClient.get(NOTIFICATION.BASE);
 };
 
 export const getUnreadCountApi = () => {
-  return api.get("/notifications/unread-count");
+  return apiClient.get(NOTIFICATION.UNREAD_COUNT);
 };
 
 export const markAsReadApi = (id) => {
-  return api.post(`/notifications/read/${id}`);
+  return apiClient.patch(`${NOTIFICATION.READ}/${id}/read`);
+};
+
+export const markAllAsReadApi = () => {
+  return apiClient.patch(NOTIFICATION.READ_ALL);
 };

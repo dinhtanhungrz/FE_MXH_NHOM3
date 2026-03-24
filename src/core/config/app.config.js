@@ -5,67 +5,74 @@ API_BASE_URL: "http://localhost:8080/api",
 
 // API Endpoints
 API_ENDPOINTS: {
-AUTH: {
-LOGIN: "/auth/login",
-GOOGLE_LOGIN: "/auth/google",
-LOGOUT: "/auth/logout",
-REFRESH_TOKEN: "/auth/refresh-token",
-REGISTER: "/auth/register",
-},
-
-    USER: {
-      BASE: "/users",
-      ME: "/users/me",
-      PROFILE: "/users/profile",
-      AVATAR: "/users/update-avatar",
-      PASSWORD: "/users/password",
-      BLOCK: "/users/block",
-       // 🔥 FRIEND FLOW (FIXED)
-      FRIEND_REQUEST: "/users/friend-request/",        // POST /{id}
-      CANCEL_REQUEST: "/users/cancel-request/",        // DELETE /{id}
-      ACCEPT_REQUEST: "/users/friend-request/",        // POST /{id}/accept
-      REJECT_REQUEST: "/users/friend-request/reject/",        // DELETE /reject/{id}
-      UNFRIEND: "/users/unfriend/",
-      FRIEND_REQUESTS: "/users/friend-requests",      // GET
-      FRIENDS: "/users/friends",
-      SUGGESTIONS: "/users/suggestions",
-    },
-
-FRIEND: {
-// LIST: "/users/friends",
-COMMON: "/friends/common/:targetId",
-},
-
-    POST: {
-      BASE: "/statuses",
-      PROFILE: "/statuses/profile",
-      USER: "/statuses/user/", // + userId
-    },
-    COMMENT: {
-      BASE: "/comments",
-      STATUS: "/comments/status/", // + statusId
-    },
-    CHAT: {
-      GROUPS: "/chat-groups",
-      DETAIL: "/chat-groups/:groupId",
-      MEMBERS: "/chat-groups/:groupId/members",
-      MESSAGES: "/messages",
-      GROUP_MESSAGES: "/messages/group/:groupId",
-    },
-    // Like endpoints
-    LIKE: {
-      BASE: "/status-like",
-      STATUS: "/status-like/:statusId",
-    },
-    // User statistics endpoints
-    STATISTICS: {
-      NEW_USERS: "/statistics/new-users", // + ?type=WEEK|MONTH|YEAR
-    },
-    VISITS: {
-      RECORD_VISIT: "/app-visits/record",
-      STATISTICS: "/app-visits/statistics",
-    },
+  AUTH: {
+  LOGIN: "/auth/login",
+  GOOGLE_LOGIN: "/auth/google",
+  LOGOUT: "/auth/logout",
+  REFRESH_TOKEN: "/auth/refresh-token",
+  REGISTER: "/auth/register",
   },
+
+  USER: {
+    BASE: "/users",
+    ME: "/users/me",
+    PROFILE: "/users/profile",
+    AVATAR: "/users/update-avatar",
+    PASSWORD: "/users/password",
+    BLOCK: "/users/block",
+      // 🔥 FRIEND FLOW (FIXED)
+    FRIEND_REQUEST: "/users/friend-request/",        // POST /{id}
+    CANCEL_REQUEST: "/users/cancel-request/",        // DELETE /{id}
+    ACCEPT_REQUEST: "/users/friend-request/",        // POST /{id}/accept
+    REJECT_REQUEST: "/users/friend-request/reject/",        // DELETE /reject/{id}
+    UNFRIEND: "/users/unfriend/",
+    FRIEND_REQUESTS: "/users/friend-requests",      // GET
+    FRIENDS: "/users/friends",
+    SUGGESTIONS: "/users/suggestions",
+  },
+  
+  NOTIFICATION: {
+    BASE: "/users/notifications",
+    UNREAD_COUNT: "/users/notifications/unread-count",
+    READ: "/users/notifications", // requires appending /${id}/read
+    READ_ALL: "/users/notifications/read-all",
+  },
+
+  FRIEND: {
+  // LIST: "/users/friends",
+  COMMON: "/friends/common/:targetId",
+  },
+
+  POST: {
+    BASE: "/statuses",
+    PROFILE: "/statuses/profile",
+    USER: "/statuses/user/", // + userId
+  },
+  COMMENT: {
+    BASE: "/comments",
+    STATUS: "/comments/status/", // + statusId
+  },
+  CHAT: {
+    GROUPS: "/chat-groups",
+    DETAIL: "/chat-groups/:groupId",
+    MEMBERS: "/chat-groups/:groupId/members",
+    MESSAGES: "/messages",
+    GROUP_MESSAGES: "/messages/group/:groupId",
+  },
+  // Like endpoints
+  LIKE: {
+    BASE: "/status-like",
+    STATUS: "/status-like/:statusId",
+  },
+  // User statistics endpoints
+  STATISTICS: {
+    NEW_USERS: "/statistics/new-users", // + ?type=WEEK|MONTH|YEAR
+  },
+  VISITS: {
+    RECORD_VISIT: "/app-visits/record",
+    STATISTICS: "/app-visits/statistics",
+  },
+},
 
 // Storage keys
 STORAGE_KEYS: {

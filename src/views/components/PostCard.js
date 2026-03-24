@@ -391,17 +391,17 @@ export const setupPostEventHandlers = (container) => {
     try {
       const liked = likeBtn.dataset.liked === "true";
       const likeCountEl = postElement.querySelector(".btn-like-stat span");
-      const res = liked        ? await unlikeStatus(postId)
-        : await likeStatus(postId);
+      const res = liked ? await unlikeStatus(postId) : await likeStatus(postId);
+      
       if (likeCountEl) {
-        likeCountEl.textContent = res.likesCount;
+        likeCountEl.textContent = res.likeCount;
       }
       
 
-      likeBtn.dataset.liked = String(res.like);
-      likeCountEl.textContent = res.likesCount;
+      likeBtn.dataset.liked = String(res.liked);
+      likeCountEl.textContent = res.likeCount;
 
-      if (res.like) {
+      if (res.liked) {
         likeBtn.classList.add("text-blue-600");
         likeBtn.classList.remove("text-gray-600");
       } else {

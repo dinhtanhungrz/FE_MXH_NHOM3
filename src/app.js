@@ -20,6 +20,7 @@ import { MessagesPage, cleanupMessagesPage } from "./views/pages/user/MessagesPa
 import visitStatisticsController from "./controllers/visitStatisticsController.js";
 import { OAuth2RedirectPage } from './views/pages/OAuth2RedirectPage.js'
 import NotificationsPage from "./views/pages/user/NotificationsPage.js";
+import { handleNotificationScroll } from "./core/utils/navigationHelper.js";
 
 /**
  * 1. Đăng ký Routes
@@ -48,7 +49,7 @@ function registerRoutes() {
   router.addRoute("/friends", async (params) => await FriendsListPage(params), { title: "Bạn bè", requiresAuth: true });
   router.addRoute("/messages", MessagesPage, { title: "Tin nhắn", requiresAuth: true });
   
-  router.addRoute("/user-profile/:id", async (params) => await UserProfilePage(params.id), { 
+  router.addRoute("/user-profile/:id", UserProfilePage, { 
     title: "Hồ sơ người dùng", 
     requiresAuth: true 
   });
@@ -87,6 +88,10 @@ function setupNavigationGuards() {
 
     // Khởi tạo Event cho từng trang dựa trên Path
     initPageEvents(to);
+
+    // Xử lý cuộn tới bài viết/bình luận từ thông báo
+    console.log('[App] Router afterEach triggered. Target query:', to.query);
+    handleNotificationScroll(to);
   });
 }
   let notificationInitialized = false;
@@ -104,7 +109,7 @@ function initPageEvents(route) {
 
     // Trang User Profile (Dynamic ID)
     if (path.startsWith('/user-profile/') && typeof initUserProfilePageEvents === 'function') {
-      const userId = path.split("/").pop();
+      const userId = route.params?.id || path.split("/").pop();
       initUserProfilePageEvents(userId);
     }
     

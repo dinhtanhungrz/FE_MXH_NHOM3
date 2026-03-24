@@ -581,7 +581,7 @@ const buildAutoGroupName = () => {
   const selectedFriends = state.friends.filter((friend) => state.selectedFriendIds.has(friend.id));
 
   if (selectedFriends.length === 1) {
-    return `Chat với ${selectedFriends[0].fullName || selectedFriends[0].username}`;
+    return `${selectedFriends[0].fullName || selectedFriends[0].username}`;
   }
 
   return "Nhóm chat mới";
@@ -809,15 +809,10 @@ export async function MessagesPage() {
     <div class="mx-auto max-w-7xl">
       <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">Realtime Chat</p>
           <h1 class="mt-2 text-3xl font-bold text-slate-900">Tin nhắn</h1>
-          <p class="mt-2 text-sm text-slate-500">Chat group theo thời gian thực bằng REST + WebSocket.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-          <span id="chat-realtime-status" class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700">
-            Realtime: đang chuẩn bị
-          </span>
           <button
             id="chat-open-create-group"
             type="button"
@@ -858,12 +853,12 @@ export async function MessagesPage() {
           ></div>
 
           <form id="chat-message-form" class="border-t border-slate-200 bg-white px-6 py-4">
-            <div class="flex flex-col gap-3 md:flex-row md:items-end">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center">
               <label class="block flex-1">
                 <span class="sr-only">Tin nhắn</span>
                 <textarea
                   id="chat-message-input"
-                  rows="2"
+                  rows="1"
                   class="w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   placeholder="Chọn một nhóm chat để bắt đầu"
                 ></textarea>

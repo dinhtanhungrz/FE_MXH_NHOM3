@@ -115,7 +115,7 @@ const setupClickNotification = (reloadCount) => {
         await reloadCount();
 
         // New redirection logic:
-        if (type === "LIKE_STATUS" || type === "COMMENT_STATUS") {
+        if (type === "LIKE_STATUS") {
           // Related to own post -> go to own profile
           router.navigate(`/user-profile/${currentUserId}?postId=${postId}`);
         } else if (type === "LIKE_COMMENT") {
@@ -131,6 +131,8 @@ const setupClickNotification = (reloadCount) => {
         } else if (item.dataset.entityType === "USER") {
           // Friend notifications -> go to user profile
           router.navigate(`/user-profile/${entityId}`);
+        } else if (type === "COMMENT_STATUS"){
+           router.navigate(`/profile?postId=${postId}&commentId=${entityId}`);
         } else {
           // Default behavior
           router.navigate(`/posts/${postId}?postId=${postId}`);

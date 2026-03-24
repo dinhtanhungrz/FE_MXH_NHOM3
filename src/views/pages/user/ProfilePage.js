@@ -11,6 +11,7 @@ import {
 import postController from "../../../controllers/postController.js";
 import authState from "../../../state/authState.js";
 import { renderPostCard, setupPostEventHandlers } from "../../components/PostCard.js";
+import commentModule from "../../../core/commentModule.js";
 
 /**
  * Profile Page
@@ -415,6 +416,7 @@ export const ProfilePage = async () => {
       attachPostsListListeners(postsList);
     }
     initializeCreatePost();
+    handleNotificationNavigation();
   }, 100);
 
   return layoutContent;
@@ -1064,4 +1066,62 @@ const setupAvatarCropper = () => {
   });
 };
 
+
+/**
+ * Xử lý điều hướng từ thông báo: scroll tới post và mở comment cụ thể
+ */
+const handleNotificationNavigation = async () => {
+  const hash = window.location.hash; // vd: #/profile?postId=123&commentId=456
+  const queryString = hash.includes("?") ? hash.split("?")[1] : "";
+  const params = new URLSearchParams(queryString);
+  const postId = params.get("postId");
+  const commentId = params.get("commentId");
+
+  if (!postId) return;
+
+  // Tìm article element của post
+  const postElement = document.querySelector(`article[data-post-id="${postId}"]`);
+  if (!postElement) return;
+
+  // Scroll tới post với animation highlight
+  postElement.scrollIntoView({ behavior: "smooth", block: "center" });
+  postElement.classList.add(
+    "ring-2", "ring-blue-400", "ring-offset-2", "transition-all"
+  );
+  setTimeout(() => {
+    postElement.classList.remove("ring-2", "ring-blue-400", "ring-offset-2");
+  }, 2500);
+
+  // Mở comment section
+  const commentSection = postElement.querySelector(`#comment-section-${postId}`);
+  if (!commentSection) return;
+
+  if (commentSection.classList.contains("hidden")) {
+    commentSection.classList.remove("hidden");
+    
+    await commentModule.initCommentSection(commentSection, postId);
+  }
+
+  if (!commentId) return;
+
+  // Chờ comment list render xong rồi scroll tới comment cụ thể
+  const waitForComment = (retries = 10) => {
+    const commentEl = document.querySelector(`.comment-item[data-id="${commentId}"]`);
+    if (commentEl) {
+      commentEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Highlight comment được nhắc tới
+      commentEl.classList.add(
+        "bg-blue-50", "rounded-xl", "transition-all", "duration-700"
+      );
+      setTimeout(() => {
+        commentEl.classList.remove("bg-blue-50");
+      }, 3000);
+    } else if (retries > 0) {
+      setTimeout(() => waitForComment(retries - 1), 200);
+    }
+  };
+
+  // Delay nhỏ để đợi commentModule render xong
+  setTimeout(() => waitForComment(), 400);
+};
 export default ProfilePage;

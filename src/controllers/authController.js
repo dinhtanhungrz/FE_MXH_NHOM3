@@ -31,7 +31,10 @@ export const loginWithGoogle = async (googleToken) => {
         // 2. Lưu vào AuthState (Class bạn đã viết)
         // Việc này giúp toàn bộ App biết user đã login thành công
         authState.setTokens(data.accessToken, data.refreshToken);
-        authState.setUser(data.user);
+
+        const resUser = await authService.getCurrentUser();
+        
+        authState.setUser(resUser.data);
 
         return data;
     } catch (error) {

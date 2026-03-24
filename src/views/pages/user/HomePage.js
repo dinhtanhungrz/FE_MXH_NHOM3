@@ -18,7 +18,7 @@ const transformStatusToPost = (status) => {
     imageUrls: status.imageUrls || [],
     likesCount: status.likesCount || 0,
     commentsCount: status.commentsCount || 0,
-    like: status.like || false,
+    like: status.like === true,
     user: {
       id: status.authorId,
       username: status.authorName,

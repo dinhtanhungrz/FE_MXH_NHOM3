@@ -4,6 +4,7 @@ import { authState } from "./state/authState.js";
 import AdminPage from "./views/pages/admin/AdminPage.js";
 import AdminUsersPage from "./views/pages/admin/AdminUsersPage.js";
 import AdminAnalyticsPage from "./views/pages/admin/AdminAnalyticsPage.js";
+import { setupNotification } from "./views/components/setupNotification.js";
 
 // Import pages
 import { HomePage } from "./views/pages/user/HomePage.js";
@@ -18,6 +19,8 @@ import { MutualFriendsPage } from "./views/pages/user/MutualFriendsPage.js";
 import { MessagesPage, cleanupMessagesPage } from "./views/pages/user/MessagesPage.js";
 import visitStatisticsController from "./controllers/visitStatisticsController.js";
 import { OAuth2RedirectPage } from './views/pages/OAuth2RedirectPage.js'
+import NotificationsPage from "./views/pages/user/NotificationsPage.js";
+import { handleNotificationScroll } from "./core/utils/navigationHelper.js";
 
 /**
  * 1. Đăng ký Routes
@@ -46,10 +49,11 @@ function registerRoutes() {
   router.addRoute("/friends", async (params) => await FriendsListPage(params), { title: "Bạn bè", requiresAuth: true });
   router.addRoute("/messages", MessagesPage, { title: "Tin nhắn", requiresAuth: true });
   
-  router.addRoute("/user-profile/:id", async (params) => await UserProfilePage(params.id), { 
+  router.addRoute("/user-profile/:id", UserProfilePage, { 
     title: "Hồ sơ người dùng", 
     requiresAuth: true 
   });
+  router.addRoute("/notifications", NotificationsPage, {title: "Thông báo",requiresAuth: true});
 
   router.addRoute("/mutual-friends/:id", async (params) => await MutualFriendsPage(params), { 
     title: "Bạn chung", 
@@ -84,9 +88,13 @@ function setupNavigationGuards() {
 
     // Khởi tạo Event cho từng trang dựa trên Path
     initPageEvents(to);
+
+    // Xử lý cuộn tới bài viết/bình luận từ thông báo
+    console.log('[App] Router afterEach triggered. Target query:', to.query);
+    handleNotificationScroll(to);
   });
 }
-
+  let notificationInitialized = false;
 /**
  * 3. Centralized Page Event Initializer
  */
@@ -101,11 +109,16 @@ function initPageEvents(route) {
 
     // Trang User Profile (Dynamic ID)
     if (path.startsWith('/user-profile/') && typeof initUserProfilePageEvents === 'function') {
-      const userId = path.split("/").pop();
+      const userId = route.params?.id || path.split("/").pop();
       initUserProfilePageEvents(userId);
     }
     
     // Thêm các trang khác tại đây...
+    // Khởi tạo Notification trên tất cả trang (chỉ 1 lần)
+    const btn = document.getElementById("notificationBtn");
+    if (btn) {
+      setupNotification();
+    }
   }, 50); // Tăng nhẹ delay để đảm bảo DOM ổn định
 }
 

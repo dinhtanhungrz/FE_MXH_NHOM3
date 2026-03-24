@@ -163,7 +163,7 @@ class Router {
      */
     async render() {
         const hash = window.location.hash.slice(1) || '/';
-        const path = hash.split('?')[0]; // Remove query string
+        const [path, queryString] = hash.split('?');
         
         const matchedRoute = this.findRoute(path);
         
@@ -173,6 +173,15 @@ class Router {
             return;
         }
 
+        // Parse query parameters
+        console.log('[Router] Rendering path:', path, 'Query string:', queryString);
+        const query = {};
+        const queryParams = new URLSearchParams(queryString || '');
+        queryParams.forEach((value, key) => {
+            query[key] = value;
+        });
+        matchedRoute.query = query;
+
         // Check authentication
         if (matchedRoute.requiresAuth && !authState.isAuthenticated()) {
             console.log('Route requires auth, redirecting to login');
@@ -180,8 +189,10 @@ class Router {
             return;
         }
 
+        const fromRoute = this.currentRoute;
+
         // Execute before hooks
-        const shouldContinue = await this.executeBeforeHooks(matchedRoute, this.currentRoute);
+        const shouldContinue = await this.executeBeforeHooks(matchedRoute, fromRoute);
         if (!shouldContinue) {
             return;
         }
@@ -201,11 +212,11 @@ class Router {
             const html = await matchedRoute.component(matchedRoute.params);
             app.innerHTML = html;
 
-            // Execute after hooks
-            await this.executeAfterHooks(matchedRoute, this.currentRoute);
-
             // Update current route
             this.currentRoute = matchedRoute;
+
+            // Execute after hooks
+            await this.executeAfterHooks(matchedRoute, fromRoute);
 
         } catch (error) {
             console.error('Error rendering route:', error);

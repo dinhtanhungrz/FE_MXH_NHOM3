@@ -2,7 +2,7 @@ import { Layout } from "../../components/Layout.js";
 import { authState } from "../../../state/authState.js";
 import { hideLoading, showLoading } from "../../../core/utils/helpers.js";
 import postController from "../../../controllers/postController.js";
-import friendController from "../../../controllers/friendController.js"; 
+import friendController from "../../../controllers/friendController.js";
 import { renderPostCard, setupPostEventHandlers } from "../../components/PostCard.js";
 
 /**
@@ -18,7 +18,7 @@ const transformStatusToPost = (status) => {
     imageUrls: status.imageUrls || [],
     likesCount: status.likesCount || 0,
     commentsCount: status.commentsCount || 0,
-    like: status.like || false,
+    like: status.like === true,
     user: {
       id: status.authorId,
       username: status.authorName,
@@ -32,8 +32,10 @@ const transformStatusToPost = (status) => {
  * Render HTML cho từng item gợi ý kết bạn
  */
 const renderSuggestionItem = (u) => {
-  const avatar = u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username || "User")}&background=random`;
-  
+  const avatar =
+    u.avatarUrl ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username || "User")}&background=random`;
+
   const profileLink = `#/user-profile/${u.id}`;
 
   return `
@@ -72,13 +74,13 @@ export const HomePage = async () => {
 
   if (!isAuthenticated) {
     // Landing page cho user chưa login (Giữ nguyên logic cũ)
-    return renderLandingPage(); 
+    return renderLandingPage();
   }
 
   // GỌI DATA SONG SONG: News Feed và Gợi ý kết bạn
   const [statuses, suggestions] = await Promise.all([
     postController.getNewFeedsPublicAndFriends(),
-    friendController.getSuggestions() 
+    friendController.getSuggestions(),
   ]);
 
   const content = `
@@ -118,7 +120,9 @@ export const HomePage = async () => {
                     <div class="posts-feed space-y-6">
                         ${
                           statuses && statuses.length > 0
-                            ? statuses.map((status) => renderPostCard(transformStatusToPost(status))).join("")
+                            ? statuses
+                                .map((status) => renderPostCard(transformStatusToPost(status)))
+                                .join("")
                             : `<div class="text-center py-12"><p class="text-gray-500 text-lg">Chưa có bài viết nào</p></div>`
                         }
                     </div>
@@ -155,11 +159,11 @@ export const HomePage = async () => {
 
   setTimeout(() => {
     initializeHomePage();
-    
+
     // Gắn sự kiện kết bạn cho Sidebar
     const suggestionsList = document.getElementById("suggestionsList");
     if (suggestionsList) {
-        setupSuggestionEvents(suggestionsList);
+      setupSuggestionEvents(suggestionsList);
     }
 
     // Setup post event handlers
@@ -176,15 +180,14 @@ export const HomePage = async () => {
  * Gắn sự kiện Click Delegation cho danh sách gợi ý
  */
 const setupSuggestionEvents = (container) => {
-    container.addEventListener("click", async (e) => {
-        const btn = e.target.closest(".add-friend-btn");
-        if (btn) {
-            const userId = btn.dataset.userId;
-            await friendController.handleAddFriend(userId, btn);
-        }
-    });
+  container.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".add-friend-btn");
+    if (btn) {
+      const userId = btn.dataset.userId;
+      await friendController.handleAddFriend(userId, btn);
+    }
+  });
 };
-
 
 const initializeHomePage = () => {
   const openBtn = document.getElementById("openCreatePostBtn");
@@ -193,7 +196,7 @@ const initializeHomePage = () => {
     let modal = document.getElementById("createPostModal");
     if (!modal) {
       document.body.insertAdjacentHTML("beforeend", CreatePostModal());
-      initializePostModal(); 
+      initializePostModal();
     }
     const modalElement = document.getElementById("createPostModal");
     modalElement.classList.remove("hidden");
@@ -242,12 +245,12 @@ const CreatePostModal = () => {
 };
 
 const initializePostModal = () => {
-    // ... Giữ nguyên toàn bộ logic Close/Preview/Submit cũ của bạn ...
+  // ... Giữ nguyên toàn bộ logic Close/Preview/Submit cũ của bạn ...
 };
 
 // Helper cho Landing Page
 const renderLandingPage = () => {
-    return ``;
+  window.location.href = "#/login";
 };
 
 export default HomePage;

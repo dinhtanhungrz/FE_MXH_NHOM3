@@ -16,7 +16,8 @@ export const UserProfilePage = async (params) => {
   let userId = params?.id;
   if (!userId || userId === ":id") {
     const hashParts = window.location.hash.split("/");
-    userId = hashParts[2];
+    const idPart = hashParts[2] || "";
+    userId = idPart.split("?")[0];
   }
 
   userId = Number(userId);
@@ -449,7 +450,8 @@ export const initUserProfilePageEvents = async (userId) => {
   // Fix: Extract userId from hash if not provided (for direct navigation)
   if (!userId || userId === ":id") {
     const hashParts = window.location.hash.split("/");
-    userId = hashParts[2];
+    const idPart = hashParts[2] || "";
+    userId = idPart.split("?")[0];
   }
 
   // Ensure userId is a number

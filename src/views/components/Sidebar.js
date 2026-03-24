@@ -52,7 +52,7 @@ export const Sidebar = () => {
                     />
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-800 truncate">
-                            ${user?.username || user?.name || "User"}
+                            ${user?.fullName || user?.username || "User"}
                         </p>
                         <p class="text-xs text-gray-500 truncate">
                             @${user?.username || "username"}

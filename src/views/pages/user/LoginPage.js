@@ -3,6 +3,7 @@ import { router } from "../../../core/router/router.js";
 import { showLoading, hideLoading } from "../../../core/utils/helpers.js";
 import { APP_CONFIG } from "../../../core/config/app.config.js";
 import { authState } from "../../../state/authState.js";
+import authService from "../../../services/authService.js";
 
 /**
  * Login Page
@@ -223,11 +224,9 @@ async function handleCredentialResponse(response) {
             // 1. Lưu vào authState (để HomePage.js nhận diện được isAuthenticated)
             authState.setAccessToken(authData.accessToken);
             authState.setRefreshToken(authData.refreshToken);
-            authState.setUser({
-                email: authData.email,
-                username: authData.username,
-                roles: authData.roles // Mảng ["ROLE_USER"]
-            });
+
+            const resUser = await authService.getCurrentUser();
+            authState.setUser(resUser.data);
 
             hideLoading();
 

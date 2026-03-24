@@ -19,8 +19,8 @@ export const getComments = async (statusId) => {
 
 export const addComment = async (statusId, content, parentId = null) => {
   try {
-    const newComment = await commentService.postComment(statusId, content, parentId);
-    return newComment;
+  const newComment = await commentService.postComment(statusId, content, parentId);
+  return newComment;
   } catch (error) {
     console.error("Error adding comment:", error);
     showToast("Failed to add comment", "error");
@@ -30,8 +30,8 @@ export const addComment = async (statusId, content, parentId = null) => {
 
 export const updateComment = async (commentId, newContent) => {
   try {
-    const updatedComment = await commentService.updateComment(commentId, newContent);
-    return updatedComment;
+  const updatedComment = await commentService.updateComment(commentId, newContent);
+  return updatedComment;
   } catch (error) {
     console.error("Error updating comment:", error);
     showToast("Failed to update comment", "error");

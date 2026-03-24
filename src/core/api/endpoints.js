@@ -68,6 +68,17 @@ export const commentEndpoints = {
     reply: (commentId) => replaceParams(APP_CONFIG.API_ENDPOINTS.COMMENT.REPLY, { id: commentId }),
 };
 
+/**
+ * Chat endpoints
+ */
+export const chatEndpoints = {
+    groups: () => APP_CONFIG.API_ENDPOINTS.CHAT.GROUPS,
+    detail: (groupId) => replaceParams(APP_CONFIG.API_ENDPOINTS.CHAT.DETAIL, { groupId }),
+    members: (groupId) => replaceParams(APP_CONFIG.API_ENDPOINTS.CHAT.MEMBERS, { groupId }),
+    messages: () => APP_CONFIG.API_ENDPOINTS.CHAT.MESSAGES,
+    groupMessages: (groupId) => replaceParams(APP_CONFIG.API_ENDPOINTS.CHAT.GROUP_MESSAGES, { groupId }),
+};
+
 
 /**
  * Like endpoints (sẵn sàng mở rộng)
@@ -97,6 +108,7 @@ export default {
     user: userEndpoints,
     post: postEndpoints,
     comment: commentEndpoints,
+    chat: chatEndpoints,
     like: likeEndpoints,
     follow: followEndpoints,
 };

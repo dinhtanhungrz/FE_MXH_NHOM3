@@ -16,6 +16,7 @@ import SettingsPage from "./views/pages/user/SettingsPage.js";
 import { UserProfilePage, initUserProfilePageEvents } from "./views/pages/user/UserProfilePage.js";
 import { FriendsListPage } from "./views/pages/user/FriendsListPage.js";
 import { MutualFriendsPage } from "./views/pages/user/MutualFriendsPage.js";
+import { MessagesPage, cleanupMessagesPage } from "./views/pages/user/MessagesPage.js";
 import visitStatisticsController from "./controllers/visitStatisticsController.js";
 import { OAuth2RedirectPage } from './views/pages/OAuth2RedirectPage.js'
 import NotificationsPage from "./views/pages/user/NotificationsPage.js";
@@ -45,6 +46,8 @@ function registerRoutes() {
   router.addRoute("/profile", ProfilePage, { title: "Trang cá nhân", requiresAuth: true });
   router.addRoute("/settings", SettingsPage, { title: "Cài đặt", requiresAuth: true });
   router.addRoute("/friends", async (params) => await FriendsListPage(params), { title: "Bạn bè", requiresAuth: true });
+  router.addRoute("/messages", MessagesPage, { title: "Tin nhắn", requiresAuth: true });
+  
   router.addRoute("/user-profile/:id", async (params) => await UserProfilePage(params.id), { 
     title: "Hồ sơ người dùng", 
     requiresAuth: true 
@@ -64,6 +67,10 @@ function registerRoutes() {
  */
 function setupNavigationGuards() {
   router.beforeEach((to, from, next) => {
+    if (from?.path === "/messages") {
+      cleanupMessagesPage();
+    }
+
     // Chặn người dùng đã login vào trang login/register
     const publicPages = ['/login', '/register'];
     if (publicPages.includes(to.path) && authState.isAuthenticated()) {

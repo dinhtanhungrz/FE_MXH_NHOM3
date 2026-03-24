@@ -13,53 +13,59 @@ REFRESH_TOKEN: "/auth/refresh-token",
 REGISTER: "/auth/register",
 },
 
-USER: {
-BASE: "/users",
-ME: "/users/me",
-PROFILE: "/users/profile",
-AVATAR: "/users/update-avatar",
-PASSWORD: "/users/password",
-BLOCK: "/users/block",
-FRIEND_REQUEST: "/users/friend-request/", // + userId
-CANCEL_REQUEST: "/users/cancel-request/", // + userId
-ACCEPT_REQUEST: "/users/friend-request/accept/", // + userId
-REJECT_REQUEST: "/users/friend-request/reject/", // + userId
-UNFRIEND: "/users/unfriend/", // + userId
-},
+    USER: {
+      BASE: "/users",
+      ME: "/users/me",
+      PROFILE: "/users/profile",
+      AVATAR: "/users/update-avatar",
+      PASSWORD: "/users/password",
+      BLOCK: "/users/block",
+       // 🔥 FRIEND FLOW (FIXED)
+      FRIEND_REQUEST: "/users/friend-request/",        // POST /{id}
+      CANCEL_REQUEST: "/users/cancel-request/",        // DELETE /{id}
+      ACCEPT_REQUEST: "/users/friend-request/",        // POST /{id}/accept
+      REJECT_REQUEST: "/users/friend-request/reject/",        // DELETE /reject/{id}
+      UNFRIEND: "/users/unfriend/",
+      FRIEND_REQUESTS: "/users/friend-requests",      // GET
+      FRIENDS: "/users/friends",
+      SUGGESTIONS: "/users/suggestions",
+    },
 
 FRIEND: {
 // LIST: "/users/friends",
 COMMON: "/friends/common/:targetId",
 },
 
-POST: {
-BASE: "/statuses",
-PROFILE: "/statuses/profile",
-USER: "/statuses/user/", // + userId
-},
-COMMENT: {
-BASE: "/comments",
-STATUS: "/comments/status/", // + statusId
-},
-// Like endpoints
-LIKE: {
-BASE: "/status-like",
-STATUS: "/status-like/:statusId",
-},
-NOTIFICATION: {
-BASE: "/notifications",
-UNREAD_COUNT: "/notifications/unread-count",
-MARK_READ: "/notifications/read/", // + id
-},
-// User statistics endpoints
-STATISTICS: {
-NEW_USERS: "/statistics/new-users", // + ?type=WEEK|MONTH|YEAR
-},
-VISITS: {
-RECORD_VISIT: "/app-visits/record",
-STATISTICS: "/app-visits/statistics",
-},
-},
+    POST: {
+      BASE: "/statuses",
+      PROFILE: "/statuses/profile",
+      USER: "/statuses/user/", // + userId
+    },
+    COMMENT: {
+      BASE: "/comments",
+      STATUS: "/comments/status/", // + statusId
+    },
+    CHAT: {
+      GROUPS: "/chat-groups",
+      DETAIL: "/chat-groups/:groupId",
+      MEMBERS: "/chat-groups/:groupId/members",
+      MESSAGES: "/messages",
+      GROUP_MESSAGES: "/messages/group/:groupId",
+    },
+    // Like endpoints
+    LIKE: {
+      BASE: "/status-like",
+      STATUS: "/status-like/:statusId",
+    },
+    // User statistics endpoints
+    STATISTICS: {
+      NEW_USERS: "/statistics/new-users", // + ?type=WEEK|MONTH|YEAR
+    },
+    VISITS: {
+      RECORD_VISIT: "/app-visits/record",
+      STATISTICS: "/app-visits/statistics",
+    },
+  },
 
 // Storage keys
 STORAGE_KEYS: {

@@ -93,7 +93,9 @@ apiClient.interceptors.response.use(
         const refreshToken = authState.getRefreshToken();
 
         if (!refreshToken) {
-          throw new Error("No refresh token available");
+          authState.clear();
+          window.location.hash = "#/login";
+          return Promise.reject(error);
         }
 
         // Gọi refresh token API

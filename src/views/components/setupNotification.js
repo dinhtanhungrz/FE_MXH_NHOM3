@@ -128,6 +128,9 @@ const setupClickNotification = (reloadCount) => {
         } else if (type === "REPLY_COMMENT") {
             // Reply comment -> usually go to post
             router.navigate(`/posts/${postId}?postId=${postId}&commentId=${entityId}`);
+        } else if (item.dataset.entityType === "USER") {
+          // Friend notifications -> go to user profile
+          router.navigate(`/user-profile/${entityId}`);
         } else {
           // Default behavior
           router.navigate(`/posts/${postId}?postId=${postId}`);

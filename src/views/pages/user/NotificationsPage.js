@@ -29,6 +29,8 @@ const setupEvents = () => {
                     router.navigate(`/posts/${postId}?postId=${postId}`);
                 } else if (entityType === "COMMENT") {
                     router.navigate(`/posts/${postId}?postId=${postId}&commentId=${entityId}`);
+                } else if (entityType === "USER") {
+                    router.navigate(`/user-profile/${entityId}`);
                 } else {
                     // Default fallback from NotificationItem logic
                     router.navigate(`/posts/${postId}?postId=${postId}`);

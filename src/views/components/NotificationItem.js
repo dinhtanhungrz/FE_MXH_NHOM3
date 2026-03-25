@@ -37,6 +37,10 @@ const getMessage = (n) => {
       return "đã bình luận bài viết của bạn";
     case "REPLY_COMMENT":
       return "đã trả lời bình luận của bạn";
+    case "FRIEND_REQUEST":
+      return "đã gửi cho bạn lời mời kết bạn";
+    case "FRIEND_ACCEPTED":
+      return "đã chấp nhận lời mời kết bạn của bạn";
     default:
       return "đã tương tác với bạn";
   }

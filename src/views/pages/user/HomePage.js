@@ -191,6 +191,8 @@ const setupSuggestionEvents = (container) => {
 
 const initializeHomePage = () => {
   const openBtn = document.getElementById("openCreatePostBtn");
+  console.log(openBtn);
+  
   if (!openBtn) return;
   openBtn.addEventListener("click", () => {
     let modal = document.getElementById("createPostModal");
@@ -225,7 +227,7 @@ const CreatePostModal = () => {
               </select>
             </div>
           </div>
-          <textarea id="postContent" rows="4" placeholder="Bạn đang nghĩ gì?" class="w-full resize-none text-lg outline-none placeholder-gray-400"></textarea>
+          <textarea id="postContent" rows="3" placeholder="Bạn đang nghĩ gì?" class="w-full resize-none text-lg outline-none placeholder-gray-400 break-words whitespace-pre-wrap overflow-hidden"></textarea>
           <div id="postImagePreviewWrapper" class="mt-4 hidden grid grid-cols-2 gap-2"></div>
         </div>
         <div class="px-6 py-4 border-t border-gray-200 space-y-4">
@@ -245,7 +247,113 @@ const CreatePostModal = () => {
 };
 
 const initializePostModal = () => {
-  // ... Giữ nguyên toàn bộ logic Close/Preview/Submit cũ của bạn ...
+  const modal = document.getElementById("createPostModal");
+  if (!modal) return;
+
+  const closeBtn = document.getElementById("closeCreatePostModal");
+  const contentInput = document.getElementById("postContent");
+  const submitBtn = document.getElementById("submitPostBtn");
+  const imageInput = document.getElementById("postImageInput");
+  const previewWrapper = document.getElementById("postImagePreviewWrapper");
+
+  // ===== CLOSE MODAL FUNCTION =====
+  const closeModal = () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+    // reset form
+    contentInput.value = "";
+    imageInput.value = "";
+    previewWrapper.classList.add("hidden");
+    submitBtn.disabled = true;
+  };
+
+  // ===== ENABLE/DISABLE SUBMIT =====
+  const toggleSubmitState = () => {
+    const hasText = contentInput.value.trim().length > 0;
+    const hasImage = imageInput.files && imageInput.files.length > 0;
+
+    submitBtn.disabled = !(hasText || hasImage);
+  };
+
+  // ===== EVENTS =====
+
+  // Close button
+  closeBtn.addEventListener("click", closeModal);
+
+  // Click overlay để đóng
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Text input
+  contentInput.addEventListener("input", toggleSubmitState);
+
+  imageInput.addEventListener("change", () => {
+    const files = Array.from(imageInput.files || []);
+
+    // Clear preview cũ
+    previewWrapper.innerHTML = "";
+
+    if (files.length === 0) {
+      previewWrapper.classList.add("hidden");
+      toggleSubmitState();
+      return;
+    }
+
+    previewWrapper.classList.remove("hidden");
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const url = e.target.result;
+
+        let element;
+
+        if (file.type.startsWith("image/")) {
+          element = document.createElement("img");
+          element.src = url;
+          element.className = "w-full h-40 object-cover rounded-lg";
+        } else if (file.type.startsWith("video/")) {
+          element = document.createElement("video");
+          element.src = url;
+          element.controls = true;
+          element.className = "w-full h-40 object-cover rounded-lg";
+        }
+
+        previewWrapper.appendChild(element);
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    toggleSubmitState();
+  });
+
+  submitBtn.addEventListener("click", async () => {
+    const content = contentInput.value.trim();
+    const visibility = document.getElementById("postPrivacy").value;
+    const files = Array.from(imageInput.files || []);
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Đang đăng bài...";
+
+      await postController.createNewPost(content, visibility, files);
+
+      closeModal();
+      refreshStatuses();
+    } catch (error) {
+      console.error(error);
+      alert("Có lỗi xảy ra khi đăng bài");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Đăng";
+    }
+  });
 };
 
 // Helper cho Landing Page

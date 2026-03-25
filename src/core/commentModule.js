@@ -49,15 +49,20 @@ export const renderCommentItem = (comment) => {
         comment.owner === true ||
         comment.username === authState.getUser()?.username;
     const timeAgo = formatRelativeTime(comment.createdAt);
+    const profileLink = `#/user-profile/${comment.authorId}`;
 
     return `
     <div class="comment-item mb-4 flex gap-3 group animate-fade-in relative" data-id="${id}">
-        <img src="${comment.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.username)}&background=3b82f6&color=fff`}" 
-             class="w-8 h-8 rounded-full object-cover shrink-0 mt-1 shadow-sm border border-gray-100 transition-transform group-hover:scale-105" alt="avatar">
+        <a href="${profileLink}">
+            <img src="${comment.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.username)}&background=3b82f6&color=fff`}" 
+                class="w-8 h-8 rounded-full object-cover shrink-0 mt-1 shadow-sm border border-gray-100 transition-transform group-hover:scale-105" alt="avatar">
+        </a>
         <div class="flex-1 min-w-0">
             <div class="bg-gray-100 p-3 rounded-2xl relative inline-block max-w-full comment-bubble-transition hover:bg-gray-200/70 shadow-sm border border-transparent hover:border-gray-200">
                 <div class="flex justify-between items-center mb-0.5 gap-4">
-                    <span class="font-bold text-[13px] text-gray-900 hover:underline cursor-pointer">${comment.username}</span>
+                    <a href="${profileLink}">
+                        <span class="font-bold text-[13px] text-gray-900 hover:underline cursor-pointer">${comment.fullName || comment.username}</span>
+                    </a>
                     ${isOwner ? `
                     <div class="relative">
                         <button class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-300 transition-all btn-comment-more">

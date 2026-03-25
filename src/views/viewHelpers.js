@@ -166,8 +166,8 @@ export const renderModal = (id, title, content) => {
 **/
 
 export const renderUserLink = (user, extraClasses = "") => {
-    return `<span class ="user-link cursor-pointer font-semibold text-gray-300 hover:underline ${extraClasses}"
-        data-user-id="${user.id}">@${user.username || user.name || "User"}</span>`;
+    return `<span class ="user-link cursor-pointer font-semibold text-gray-800 hover:underline ${extraClasses}"
+        data-user-id="${user.id}">@${user.fullName || user.username || "User"}</span>`;
 }
 
 export default {

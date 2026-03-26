@@ -90,3 +90,7 @@ export default {
   getUserPosts,
   getNewFeedsPublicAndFriends,
 };
+export const getGuestFeeds = async () => {
+  const response = await window.axios.get(`${APP_CONFIG.API_BASE_URL}/statuses/guest`); 
+  return response.data;
+};

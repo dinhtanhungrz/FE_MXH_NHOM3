@@ -125,3 +125,11 @@ export default {
   getUserStatuses,
   getNewFeedsPublicAndFriends,
 };
+export const getGuestFeed = async () => {
+  try {
+    return await postService.getGuestFeeds();
+  } catch (error) {
+    console.error(error);
+    return { data: [] };
+  }
+};

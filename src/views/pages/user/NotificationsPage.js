@@ -5,17 +5,17 @@ import { renderNotificationItem } from "../../components/NotificationItem.js";
 
 let loading = false;
 
-const setupEvents = () => {
+    const setupEvents = () => {
     document.querySelectorAll(".notification-item").forEach((item) => {
-        item.onclick = async () => {
-            const id = item.dataset.id;
+    item.onclick = async () => {
+    const id = item.dataset.id;
             const entityType = item.dataset.entityType;
             const postId = item.dataset.postId;
-            const entityId = item.dataset.entityId;
+    const entityId = item.dataset.entityId;
 
-            try {
+    try {
                 // Mark as read immediately in UI
-                await notificationController.markAsRead(id);
+    await notificationController.markAsRead(id);
                 
                 item.classList.remove("bg-blue-50", "border-blue-500", "font-semibold");
                 item.classList.add("border-transparent");
@@ -34,18 +34,18 @@ const setupEvents = () => {
                 } else {
                     // Default fallback from NotificationItem logic
                     router.navigate(`/posts/${postId}?postId=${postId}`);
-                }
-            } catch (e) {
-                console.error("Mark read error", e);
-            }
-        };
+    }
+    } catch (e) {
+    console.error("Mark read error", e);
+    }
+    };
     });
-};
+    };
 
-/**
- * MAIN PAGE
- */
-export const NotificationsPage = async () => {
+    /**
+    * MAIN PAGE
+    */
+    export const NotificationsPage = async () => {
     loading = false;
     
     setTimeout(() => init(), 50);
@@ -67,13 +67,13 @@ export const NotificationsPage = async () => {
     `;
 
     return Layout(content);
-};
+    };
 
-async function init() {
+    async function init() {
     await load();
-}
+    }
 
-async function load() {
+    async function load() {
     if (loading) return;
     loading = true;
 
@@ -85,11 +85,12 @@ async function load() {
     loadingEl.classList.remove("hidden");
 
     try {
-        let notifications = await notificationController.getNotifications();
-        notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    let notifications = await notificationController.getNotifications();
 
-        if (!notifications.length) {
-            container.innerHTML = `
+    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    if (!notifications.length) {
+    container.innerHTML = `
             <div class="text-center py-20">
                 <div class="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,27 +98,27 @@ async function load() {
                     </svg>
                 </div>
                 <p class="text-gray-400">Không có thông báo mới</p>
-            </div>
-            `;
+    </div>
+    `;
             loadingEl.classList.add("hidden");
             loading = false;
-            return;
-        }
+    return;
+    }
 
         container.innerHTML = notifications.map(renderNotificationItem).join("");
-        setupEvents();
+    setupEvents();
 
     } catch (e) {
-        console.error("Load notifications error:", e);
-        container.innerHTML = `
+    console.error("Load notifications error:", e);
+    container.innerHTML = `
         <div class="text-center py-10">
             <p class="text-red-400">Lỗi tải thông báo. Vui lòng thử lại sau.</p>
-        </div>
-        `;
+    </div>
+    `;
     }
 
     loadingEl.classList.add("hidden");
     loading = false;
-}
+    }
 
     export default NotificationsPage;

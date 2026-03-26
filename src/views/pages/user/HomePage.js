@@ -72,11 +72,6 @@ export const HomePage = async () => {
   const user = authState.getUser();
   const isAuthenticated = authState.isAuthenticated();
 
-  if (!isAuthenticated) {
-    // Landing page cho user chưa login (Giữ nguyên logic cũ)
-    return renderLandingPage();
-  }
-
   // GỌI DATA SONG SONG: News Feed và Gợi ý kết bạn
   const [statuses, suggestions] = await Promise.all([
     postController.getNewFeedsPublicAndFriends(),
